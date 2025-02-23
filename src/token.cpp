@@ -20,6 +20,7 @@ std::ostream& operator<<(std::ostream& os, const Token::Type& type) {
     static std::map<Token::Type, std::string> types = {
         {Token::Type::Eof, "EOF"},
         {Token::Type::Newline, "NEWLINE"},
+        {Token::Type::Doc, "DOC"},
 
         // Grouping
         {Token::Type::RParen, "R_PAREN"},

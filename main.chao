@@ -1,3 +1,9 @@
+# This is a comment
 main = function() {
+    # This is another comment
+    # And another comment
     print("Hello, world!")
+
+    #' this is a documentation comment!
+    #' hooray!
 }

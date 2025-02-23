@@ -129,6 +129,24 @@ void Lexer::scan() {
         case '@':
             this->output.push_back(Token(Token::Type::AtSign, LEXEME_SV, this->y, start)); break;
 
+        // Handle comments
+        case '#': {
+            bool docs = false;
+            if (peek() == '\'')
+                docs =  true;  
+        
+            while (peek() != '\n')
+                this->x++;
+            if (docs) {
+                start += 2; /* ignore the #' at the begining */
+                this->output.push_back(
+                    Token(Token::Type::Doc,
+                    LEXEME_SV,
+                    this->y, start));
+            }
+            break;
+        }
+            
         case '"': {
             this->x++;
             while (peek() != '"')

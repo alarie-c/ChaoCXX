@@ -17,6 +17,7 @@ struct Token {
         // Other
         Eof = 0,
         Newline,
+        Doc,
 
         // Grouping
         LParen,
