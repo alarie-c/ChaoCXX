@@ -7,6 +7,9 @@
 
 #include "lexer.hpp"
 #include "token.hpp"
+#include "parser.hpp"
+#include "errors.hpp"
+#include "token.hpp"
 
 const char *FILE_PATH = "../main.chao";
 
@@ -36,14 +39,19 @@ int main() {
   auto source = read_file(FILE_PATH);
   if (!source)
     return -1;
-
-  // std::string s = {*source};
-  Lexer lexer = Lexer(*source);
+  
+  // Allocate this on the heap so we can leave more stack space for AST nodes
+  Reporter *reporter = new Reporter("main.chao", FILE_PATH);  
+  Lexer lexer = Lexer(*source, reporter);
 
   lexer.scan();
+  
+  std::vector<Token> tokens = lexer.finalize();
 
-  for (auto t : lexer.tokens())
+  for (auto t : tokens)
     t.print();
+  
+  Parser parser = Parser(tokens, reporter);
 
   return 0;
 }

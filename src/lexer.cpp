@@ -12,7 +12,10 @@
 
 Lexer::Lexer(const std::string &source, Reporter *reporter) : stream(source), cursor(0), line(1), reporter(reporter) {}
 
-std::vector<Token> &Lexer::tokens() { return this->output; }
+std::vector<Token> Lexer::finalize() {
+  delete this->reporter;
+  return this->output;
+}
 
 void Lexer::scan() {
   while (this->cursor < this->stream.length()) {
