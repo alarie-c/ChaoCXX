@@ -44,3 +44,37 @@ void AST_Expr_Binary::print() const {
   this->right->print();
   std::cout << "}\n";
 }
+
+AST_Allocator::~AST_Allocator() {
+  // Iterate through and delete all the heap node pointers,
+  // Stack-allocated nodes will be freed automatically
+  for (AST_Node *node : this->heap_nodes) {
+    delete node;
+  }
+}
+
+void AST_Allocator::allocate(AST_Node *node) {
+  // (Note) I don't like doing this selection everytime I wonder if there's a better way
+  if (this->stack_index < this->BUFFER_SIZE) {
+    // Allocate this node on the stack since there's space
+    this->stack_buffer[this->stack_index++] = node;
+  } else {
+    // Allocate this node on the heap
+    this->heap_nodes.push_back(node);
+  } 
+}
+
+void AST_Allocator::print() const {
+  // Print out all the stack allocated nodes since they were allocated first
+  for (size_t i = 0; i < this->stack_index; i++) {
+    this->stack_buffer[i]->print();
+  }
+  
+  if (this->heap_nodes.empty())
+    return;
+  
+  // Then print everything on the heap
+  for (const AST_Node *node : this->heap_nodes) {
+    node->print();
+  }
+}

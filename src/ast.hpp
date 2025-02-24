@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <string_view>
+#include <vector>
 #include "token.hpp"
 
 struct AST_Node {
@@ -49,6 +50,25 @@ struct AST_Expr_Binary : public AST_Node {
   AST_Expr_Binary(Token *op, size_t y, size_t x0, size_t x1);
   ~AST_Expr_Binary();
   void print() const override;
+};
+
+class AST_Allocator {
+  static constexpr size_t BUFFER_SIZE = 16;
+  
+  // An array on the stack to hold AST_Nodes
+  AST_Node* stack_buffer[BUFFER_SIZE];
+
+  // An index to track where on the stack the last AST_Node is
+  size_t stack_index = 0;
+
+  // Will begin to hold AST_Nodes once the stack buffer is full
+  std::vector<AST_Node*> heap_nodes;
+
+public:
+  ~AST_Allocator();
+
+  void allocate(AST_Node *node);
+  void print() const;
 };
 
 #endif
