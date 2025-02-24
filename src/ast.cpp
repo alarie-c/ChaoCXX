@@ -1,45 +1,46 @@
 #include <iostream>
+#include <string>
+#include <memory>
 #include <string_view>
+#include "token.hpp"
 #include "ast.hpp"
 
-Node::Node(Type t, size_t y, size_t x0, size_t x1) : type(t), y(y), x0(x0), x1(x1) {
-  switch (t) {
-  case NODE_EXPR_BINARY: {
-    this->binary.lhs = nullptr;
-    this->binary.rhs = nullptr;
-    this->binary.op = nullptr;
-  }
-  }
+AST_Node::AST_Node(size_t y, size_t x0, size_t x1) : y(y), x0(x0), x1(x1) {}
+
+AST_Expr_Symbol::AST_Expr_Symbol(const std::string_view &symbol, size_t y, size_t x0, size_t x1)
+  : AST_Node(y, x0, x1), symbol(symbol) {}
+
+void AST_Expr_Symbol::print() const {
+  std::cout << "Symbol: " << this->symbol << "\n";
 }
 
-Node::~Node() {
-  switch (this->type) {
-  case NODE_EXPR_BINARY: {
-    delete this->binary.lhs;
-    delete this->binary.rhs;
-    delete this->binary.op;
-  }
-  }
+AST_Expr_Integer::AST_Expr_Integer(signed long long int value, size_t y, size_t x0, size_t x1)
+  : AST_Node(y, x0, x1), value(value) {}
+
+void AST_Expr_Integer::print() const {
+  std::cout << "Integer: " << this->value << "\n";
 }
 
-std::ostream& operator<<(std::ostream& os, const Node& node) {
-    switch (node.type) {
-    case Node::NODE_EXPR_STRING:
-        os << "String: " << node.string.value;
-        break;
-    case Node::NODE_EXPR_SYMBOL:
-        os << "Symbol: " << node.symbol.name;
-        break;
-    case Node::NODE_EXPR_NUMBER:
-        os << "Number: " << node.number.value;
-        break;
-    case Node::NODE_EXPR_BINARY:
-        os << "Binary {\n";
-        os << "  lhs: " << *node.binary.lhs << "\n";
-        os << "  rhs: " << *node.binary.rhs << "\n";
-        os << "  op: " << node.binary.op << "\n";
-        os << "}";
-        break;
-    }
-    return os;
+AST_Expr_String::AST_Expr_String(const std::string_view &value, size_t y, size_t x0, size_t x1)
+  : AST_Node(y, x0, x1), value(value) {}
+
+void AST_Expr_String::print() const {
+  std::cout << "String: " << this->value << "\n";
+}
+
+AST_Expr_Binary::AST_Expr_Binary(Token *op, size_t y, size_t x0, size_t x1)
+  : AST_Node(y, x0, x1), op(op) {} 
+
+AST_Expr_Binary::~AST_Expr_Binary() {
+  delete this->left;
+  delete this->right;
+  delete this->op;
+}
+
+void AST_Expr_Binary::print() const {
+  std::cout << "{ Binary\n";
+  this->left->print();
+  std::cout << this->op->lexeme << "\n";
+  this->right->print();
+  std::cout << "}\n";
 }

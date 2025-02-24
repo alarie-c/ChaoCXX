@@ -98,7 +98,7 @@ struct Token {
   std::string_view lexeme;
 
   Token(Type type, std::string_view lexeme, size_t line, size_t offset);
-  void print();
+  void print() const;
 };
 
 // Operator overload `<<` for `Token`

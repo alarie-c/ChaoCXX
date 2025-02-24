@@ -6,7 +6,7 @@ Token::Token(Type type, std::string_view lexeme, size_t line, size_t offset)
     : type(type), lexeme(lexeme), x(offset), y(line) {}
 
 // Method definition
-void Token::print() {
+void Token::print() const {
   std::cout << this->y << "; " << this->x << "-"
             << this->x + this->lexeme.length() - 1 << "; " << this->type << "; "
             << this->lexeme << std::endl;
