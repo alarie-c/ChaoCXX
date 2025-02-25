@@ -1,5 +1,5 @@
 #ifndef PARSER_H
-#define PARSE_H
+#define PARSER_H
 
 #include "ast.hpp"
 #include "errors.hpp"

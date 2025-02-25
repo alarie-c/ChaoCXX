@@ -11,6 +11,9 @@ add_executable(chaocpp
     src/main.cpp
     src/lexer.cpp
     src/token.cpp
+    src/parser.cpp
+    src/errors.cpp
+    src/ast.cpp
 )
 
 target_include_directories(chaocpp PRIVATE src)
