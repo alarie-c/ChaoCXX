@@ -3,14 +3,16 @@
 #include <string>
 #include <vector>
 
+#include "errors.hpp"
 #include "lexer.hpp"
 #include "token.hpp"
-#include "errors.hpp"
+
 
 #define LEXEME_SV                                                              \
   (std::string_view(this->stream).substr(start, (1 + this->cursor - start)))
 
-Lexer::Lexer(const std::string &source, Reporter *reporter) : stream(source), cursor(0), line(1), reporter(reporter) {}
+Lexer::Lexer(const std::string &source, Reporter *reporter)
+    : stream(source), cursor(0), line(1), reporter(reporter) {}
 
 std::vector<Token> Lexer::finalize() {
   delete this->reporter;
@@ -29,8 +31,8 @@ void Lexer::scan() {
     case '\t':
       break;
     case '\n': {
-      this->output.push_back(
-          Token(Token::Type::NEWLINE, std::string_view{"\\n"}, this->line, start));
+      this->output.push_back(Token(Token::Type::NEWLINE,
+                                   std::string_view{"\\n"}, this->line, start));
       this->line++;
       break;
     }
@@ -222,10 +224,12 @@ void Lexer::scan() {
         this->output.push_back(
             Token(Token::Type::NUMBER, LEXEME_SV, this->line, start));
       } else {
-        // This is the catchall for anything that didn't go through the rest of the switch
-        // or the else cases afterwards
-        // Going to push an error that this character is illegal and just not push it to the output at all
-        this->reporter->push_error(Error(Error::Type::ERROR_ILLEGAL_CHAR, this->line, this->cursor, this->cursor, Error::Flag::EFLAG_ABORT, "Illegal character"));
+        // This is the catchall for anything that didn't go through the rest of
+        // the switch or the else cases afterwards Going to push an error that
+        // this character is illegal and just not push it to the output at all
+        this->reporter->push_error(
+            Error(Error::Type::ERROR_ILLEGAL_CHAR, this->line, this->cursor,
+                  this->cursor, Error::Flag::EFLAG_ABORT, "Illegal character"));
         break; // !!! Untested
       }
     }

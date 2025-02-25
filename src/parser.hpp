@@ -1,18 +1,18 @@
 #ifndef PARSER_H
 #define PARSE_H
 
-#include "token.hpp"
 #include "ast.hpp"
 #include "errors.hpp"
+#include "token.hpp"
 #include <iostream>
 #include <memory>
-#include <vector>
 #include <optional>
+#include <vector>
 
 class Parser {
   std::vector<Token> &stream;
   int cursor = 0;
-  
+
 public:
   AST_Allocator allocator;
   Reporter *reporter;
@@ -21,7 +21,7 @@ public:
   void parse_all();
 
 private:
-  std::optional<const Token&> peek() const;
+  std::optional<const Token &> peek() const;
   const Token &next();
 
   bool expect(Token::Type type);

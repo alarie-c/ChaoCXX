@@ -1,8 +1,8 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include "token.hpp"
 #include "errors.hpp"
+#include "token.hpp"
 #include <string_view>
 #include <vector>
 
@@ -19,7 +19,7 @@ public:
 
   // Deletes the pointer to Reporter and returns the tokens
   std::vector<Token> finalize();
-  
+
 private:
   // Get the next character and advance. If EOF reached, will return '\0'
   char next();
