@@ -36,7 +36,7 @@ std::optional<std::string> read_file(const char *path) {
 
 // Move the tokenize functionality out of main() so that the lexer only
 // exists on the stack for as long as we need it to
-std::vector<Token> tokenize(std::string source, Reporter *reporter) {
+std::vector<Token> tokenize(std::string &source, Reporter *reporter) {
   Lexer lexer = Lexer(source, reporter);
   lexer.scan();
   std::vector<Token> tokens = lexer.output;
@@ -49,11 +49,13 @@ int main() {
     return -1;
 
   // Allocate this on the heap so we can leave more stack space for AST nodes
-  Reporter *reporter = new Reporter("main.chao", FILE_PATH);
+  Reporter *reporter = new Reporter("main.chao", FILE_PATH, *source);
   std::vector<Token> tokens = tokenize(*source, reporter);
-  
+
   for (auto t : tokens)
     t.print();
+
+  reporter->print_errors();
 
   // Parser parser = Parser(tokens, reporter);
 

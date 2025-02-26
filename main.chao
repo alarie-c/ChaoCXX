@@ -4,7 +4,9 @@ main = function() {
     # And another comment
     print("Hello, world!")
 
-    x = function() {}
+    x = function() {} $
+
+    ~
 
     #' this is a documentation comment!
     #' hooray!

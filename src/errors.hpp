@@ -2,6 +2,8 @@
 #define ERRORS_H
 
 #include <cstddef>
+#include <iostream>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -20,21 +22,26 @@ struct Error {
   };
 
   Type type;
-  Flag flag;
   size_t y, x0, x1;
-  std::string message;
+  Flag flag;
+  const std::string message;
 
-  Error(Type t, size_t y, size_t x0, size_t x1, Flag flag, std::string message);
-  void print() const;
+  Error(Type t, size_t y, size_t x0, size_t x1, Flag flag,
+        const std::string message);
 };
 
+std::ostream &operator<<(std::ostream &os, const Error &e);
+
 class Reporter {
-  std::string file_name, path;
+  const std::string file_name, path;
+  const std::string &source;
   std::vector<Error> errors;
 
 public:
-  Reporter(std::string file_name, std::string path);
-  void push_error(const Error e);
+  Reporter(const std::string file_name, const std::string path,
+           const std::string &source);
+  void push_error(const Error &e);
+  void print_errors() const;
 };
 
 #endif
