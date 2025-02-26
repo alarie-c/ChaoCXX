@@ -11,12 +11,12 @@
 #define LEXEME_SV                                                              \
   (std::string_view(this->stream).substr(start, (1 + this->cursor - start)))
 
+inline Error *lexer_error(Error::Type t, size_t y, size_t x0, size_t x1, Error::Flag flag, std::string message) {
+  return new Error(t, y, x0, x1, flag, message);
+}
+
 Lexer::Lexer(const std::string &source, Reporter *reporter)
     : stream(source), cursor(0), line(1), reporter(reporter) {}
-
-Lexer::~Lexer() {
-  delete this->reporter;
-}
 
 void Lexer::scan() {
   while (this->cursor < this->stream.length()) {
@@ -226,9 +226,8 @@ void Lexer::scan() {
         // This is the catchall for anything that didn't go through the rest of
         // the switch or the else cases afterwards Going to push an error that
         // this character is illegal and just not push it to the output at all
-        this->reporter->push_error(
-            Error(Error::Type::ERROR_ILLEGAL_CHAR, this->line, this->cursor,
-                  this->cursor, Error::Flag::EFLAG_ABORT, "Illegal character"));
+        std::cout << "This is an erroring character" << std::endl;
+        this->reporter->new_error(Error::Type::ILLEGAL_CHAR, this->line, this->cursor, this->cursor, Error::Flag::ABORT, "Illegal Character");
         break; // !!! Untested
       }
     }

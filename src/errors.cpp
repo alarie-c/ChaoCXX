@@ -9,23 +9,24 @@
 Reporter::Reporter(const std::string file_name, const std::string path,
                    const std::string &source)
     : file_name(file_name), path(path), source(source) {}
-void Reporter::push_error(const Error &e) { this->errors.emplace_back(e); }
 
-Error::Error(Type t, size_t y, size_t x0, size_t x1, Flag flag,
-             const std::string message)
-    : type(t), y(y), x0(x0), x1(x1), message(std::move(message)), flag(flag) {
-  if (flag == EFLAG_ABORT) {
-    // If flag is not passed or is 0
-    this->flag = Error::Flag::EFLAG_ABORT;
-  }
-}
+void Reporter::new_error(Error::Type type, size_t line, size_t start, size_t end, Error::Flag flag, std::string message) {
+  std::cout << "Pushing a new error: " << type << std::endl;
+  
+  Error* error = new Error(type, line, start, end, flag, message);
+  std::cout << error->message << std::endl;
+  this->errors.push_back(error);
+};
+
+Error::Error(Type t, size_t line, size_t x0, size_t x1, Flag flag, std::string message)
+    : type(t), line(line), x0(x0), x1(x1), flag(flag), message(std::move(message)) {}
 
 void Reporter::print_errors() const {
-  int n_errors = 1;
-  for (Error e : this->errors) {
+  int n_errors = 1;  
+  for (Error *e : this->errors) {
     // Do some bounds checking
-    if (e.x1 > this->source.length()) {
-      std::cerr << "ERROR End of error reporter substring is logner than "
+    if (e->x1 > this->source.length()) {
+      std::cerr << "ERROR End of error reporter substring is longer than "
                    "source code!"
                 << std::endl;
       continue;
@@ -36,7 +37,7 @@ void Reporter::print_errors() const {
     size_t ln_end = this->source.length();
 
     // Decrement backwards to find the beginning of this line
-    for (size_t i = e.x0; i > 0; i--) {
+    for (size_t i = e->x0; i > 0; i--) {
       if (this->source[i - 1] == '\n') {
         ln_start = i;
         break;
@@ -44,7 +45,7 @@ void Reporter::print_errors() const {
     }
 
     // Increment to find the end of this line
-    for (size_t i = e.x1; i < this->source.length(); i++) {
+    for (size_t i = e->x1; i < this->source.length(); i++) {
       if (this->source[i] == '\n')
         break;
       ln_end = i + 1;
@@ -56,30 +57,23 @@ void Reporter::print_errors() const {
                 << ")" << std::endl;
       continue;
     }
-    std::string_view buffer = this->source.substr(ln_start, ln_end - ln_start);
+
+    // Get the entire contents of the file
+    std::string buffer = this->source.substr(ln_start, ln_end - ln_start);
 
     // Get the whitespace for the underline output
-    size_t ws_n = e.x0 - ln_start; // Difference from the start of the line to
+    size_t ws_n = e->x0 - ln_start; // Difference from the start of the line to
                                    // the start of the underlined region
-    size_t underline_len = e.x1 - e.x0 + 1;
+    size_t underline_len = e->x1 - e->x0 + 1;
 
     // Construct the underlining string
     std::string ws = std::string(ws_n, ' ');
     std::string underline = ws + std::string(underline_len, '^');
 
-    std::cerr << "n_errors: " << n_errors << "\n";
-    std::cerr << "path: " << this->path << "\n";
-    std::cerr << "e: " << e << "\n";
-    std::cerr << "e.y: " << e.y << "\n";
-    std::cerr << "buffer: [" << buffer << "]\n";
-    std::cerr << "underline: [" << underline << "]\n";
-    std::cerr << "message: " << e.message << "\n";
-    std::cerr << std::endl;
-
     std::cout << "\n[" << n_errors << "] " << this->path << " " << e
-              << " on line " << e.y << "\n~\n~ " << buffer << "\n~ "
+              << " on line " << e->line << "\n~\n~ " << buffer << "\n~ "
               << underline << "\n"
-              << e.message << "\n"
+              << e->message << "\n"
               << std::endl;
     n_errors++;
   }
@@ -87,10 +81,10 @@ void Reporter::print_errors() const {
 
 std::ostream &operator<<(std::ostream &os, const Error &e) {
   static std::map<Error::Type, std::string> types = {
-      {Error::Type::ERROR_ILLEGAL_CHAR, "Illegal Character"},
-      {Error::Type::ERROR_EXPECTED_EXPRESSION, "Expected Expression"},
-      {Error::Type::ERROR_SYNTAX_ERROR, "Syntax Error"},
-      {Error::Type::ERROR_NONTERMINATING_STRLITERAL,
+      {Error::Type::ILLEGAL_CHAR, "Illegal Character"},
+      {Error::Type::EXPECTED_EXPRESSION, "Expected Expression"},
+      {Error::Type::SYNTAX_ERROR, "Syntax Error"},
+      {Error::Type::NONTERMINATING_STRLITERAL,
        "Non-terminating String Literal"},
   };
   os << types[e.type];

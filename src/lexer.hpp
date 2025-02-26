@@ -15,7 +15,6 @@ public:
   Reporter *reporter;
 
   Lexer(const std::string &source, Reporter *reporter);
-  ~Lexer();
   void scan();
 
 private:
