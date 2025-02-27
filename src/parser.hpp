@@ -28,7 +28,7 @@ private:
   bool expect(std::vector<Token::Type> types);
 
   void advance_until_end_stmt();
-  void throw_error(Error::Type type, const AST_Node &node, std::string message);
+  void throw_error(Error::Type type, const AST_Expr &node, std::string message);
 };
 
 #endif

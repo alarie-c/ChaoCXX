@@ -7,11 +7,11 @@
 #include "lexer.hpp"
 #include "token.hpp"
 
-
 #define LEXEME_SV                                                              \
   (std::string_view(this->stream).substr(start, (1 + this->cursor - start)))
 
-inline Error *lexer_error(Error::Type t, size_t y, size_t x0, size_t x1, Error::Flag flag, std::string message) {
+inline Error *lexer_error(Error::Type t, size_t y, size_t x0, size_t x1,
+                          Error::Flag flag, std::string message) {
   return new Error(t, y, x0, x1, flag, message);
 }
 
@@ -227,7 +227,9 @@ void Lexer::scan() {
         // the switch or the else cases afterwards Going to push an error that
         // this character is illegal and just not push it to the output at all
         std::cout << "This is an erroring character" << std::endl;
-        this->reporter->new_error(Error::Type::ILLEGAL_CHAR, this->line, this->cursor, this->cursor, Error::Flag::ABORT, "Illegal Character");
+        this->reporter->new_error(Error::Type::ILLEGAL_CHAR, this->line,
+                                  this->cursor, this->cursor,
+                                  Error::Flag::ABORT, "Illegal Character");
         break; // !!! Untested
       }
     }
