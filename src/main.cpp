@@ -8,6 +8,8 @@
 #include "errors.hpp"
 #include "lexer.hpp"
 #include "token.hpp"
+#include "parser.hpp"
+#include "ast.hpp"
 
 const char *FILE_PATH = "../main.chao";
 
@@ -42,6 +44,13 @@ std::vector<Token> tokenize(std::string &source, Reporter *reporter) {
   return tokens;
 }
 
+Parse_Tree make_parse_tree(std::vector<Token> stream, Reporter *reporter) {
+  Parser parser = Parser(stream, reporter);
+  parser.parse();
+  Parse_Tree tree = parser.tree;
+  return tree;
+}
+
 int main() {
   auto source = read_file(FILE_PATH);
   if (!source)
@@ -53,6 +62,13 @@ int main() {
 
   for (auto t : tokens)
     t.print();
+
+  // reporter->print_errors();
+
+  //Parse_Tree parse_tree = make_parse_tree(tokens, reporter);
+  Parser parser = Parser(tokens, reporter);
+  parser.parse();
+  parser.tree.print_all();
 
   reporter->print_errors();
 

@@ -1,3 +1,6 @@
+#ifndef AST_H
+#define AST_H
+
 #include "token.hpp"
 #include <iostream>
 #include <string>
@@ -34,7 +37,7 @@ enum AST_Op {
 };
 
 // Utility functions for AST_Op
-extern std::map<Token::Type &&, AST_Op> operators;
+extern std::map<Token::Type, AST_Op> operators;
 std::ostream &operator<<(std::ostream &os, const AST_Op &ast_op);
 
 struct AST_Node {
@@ -159,7 +162,10 @@ class Parse_Tree {
 
 public:
   void allocate(AST_Node *node);
-
+  void print_all();
+  
   Parse_Tree();
   ~Parse_Tree();
 };
+
+#endif

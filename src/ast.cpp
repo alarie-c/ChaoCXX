@@ -9,7 +9,7 @@
 // AST OPERATORS
 // =================================================================
 
-static std::map<Token::Type, AST_Op> operators = {
+std::map<Token::Type, AST_Op> operators = {
     {Token::Type::STAR_STAR, AST_Op::EXPONENT},
     {Token::Type::STAR, AST_Op::MULTIPLY},
     {Token::Type::SLASH, AST_Op::DIVIDE},
@@ -77,8 +77,10 @@ AST_Assignment::AST_Assignment(AST_Op op, int line, int start, int stop)
     : AST_Node(line, start, stop), op(op) {}
 
 AST_Assignment::~AST_Assignment() {
-  delete this->value;
-  delete this->assignee;
+  if (this->value)
+    delete this->value;
+  if (this->assignee)
+    delete this->assignee;
 }
 
 AST_String::AST_String(std::string value, int line, int start, int stop)
@@ -94,16 +96,20 @@ AST_Binary::AST_Binary(AST_Op op, int line, int start, int stop)
     : AST_Node(line, start, stop), op(op) {}
 
 AST_Binary::~AST_Binary() {
-  delete this->left;
-  delete this->right;
+  if (this->left)
+    delete this->left;
+  if (this->right)
+    delete this->right;
 }
 
 AST_Logical::AST_Logical(AST_Op op, int line, int start, int stop)
     : AST_Node(line, start, stop), op(op) {}
 
 AST_Logical::~AST_Logical() {
-  delete this->left;
-  delete this->right;
+  if (this->left)
+    delete this->left;
+  if (this->right)
+    delete this->right;
 }
 
 AST_Unary::AST_Unary(AST_Op op, int line, int start, int stop)
@@ -166,7 +172,7 @@ void AST_Binary::print() const {
   this->left->print();
   std::cout << this->op << "\n";
   this->right->print();
-  std::cout << "\n}" << std::endl;
+  std::cout << "}" << std::endl;
 }
 
 void AST_Logical::print() const {
@@ -174,14 +180,14 @@ void AST_Logical::print() const {
   this->left->print();
   std::cout << this->op << "\n";
   this->right->print();
-  std::cout << "\n}" << std::endl;
+  std::cout << "}" << std::endl;
 }
 
 void AST_Unary::print() const {
   std::cout << "{ Unary\n";
   std::cout << this->op << "\n";
   this->operand->print();
-  std::cout << "\n}" << std::endl;
+  std::cout << "}" << std::endl;
 }
 
 void AST_Call::print() const {
@@ -189,7 +195,7 @@ void AST_Call::print() const {
   this->callee->print();
   for (AST_Node *node : this->args)
     node->print();
-  std::cout << "}\n" << std::endl;
+  std::cout << "}" << std::endl;
 }
 
 void AST_Function::print() const {
@@ -199,18 +205,20 @@ void AST_Function::print() const {
   this->return_type->print();
   for (AST_Node *node : this->body)
     node->print();
-  std::cout << "}\n" << std::endl;
+  std::cout << "}" << std::endl;
 }
 
 void AST_Grouping::print() const {
   std::cout << "{ Grouping\n";
   this->inner->print();
-  std::cout << "}\n" << std::endl;
+  std::cout << "}" << std::endl;
 }
 
 // =================================================================
 // PARSE TREE
 // =================================================================
+
+Parse_Tree::Parse_Tree() {}
 
 Parse_Tree::~Parse_Tree() {
   for (AST_Node *n : this->nodes)
@@ -218,3 +226,8 @@ Parse_Tree::~Parse_Tree() {
 }
 
 void Parse_Tree::allocate(AST_Node *node) { this->nodes.push_back(node); }
+
+void Parse_Tree::print_all() {
+  for (AST_Node *node : this->nodes)
+    node->print();
+}

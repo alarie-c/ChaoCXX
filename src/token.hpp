@@ -94,10 +94,10 @@ struct Token {
   };
 
   Type type;
-  size_t x, y;
+  int x, y;
   std::string_view lexeme;
 
-  Token(Type type, std::string_view lexeme, size_t line, size_t offset);
+  Token(Type type, std::string_view lexeme, int line, int offset);
   void print() const;
 };
 

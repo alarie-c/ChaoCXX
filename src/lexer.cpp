@@ -235,14 +235,11 @@ void Lexer::scan() {
     }
     }
 
-    if (this->stream[this->cursor] == '\0') {
-      this->output.push_back(Token(Token::Type::END_OF_FILE,
-                                   std::string_view{"{ EOF }"}, this->line,
-                                   this->cursor));
-      return;
-    }
+    if (this->stream[this->cursor] == '\0')
+      break;
     this->cursor++;
   }
+  this->output.push_back(Token(Token::Type::END_OF_FILE, std::string_view{"{ EOF }"}, this->line, this->cursor));
 }
 
 char Lexer::next() {

@@ -1,13 +1,1 @@
-# This is a comment
-main = function() {
-    # This is another comment
-    # And another comment
-    print("Hello, world!")
-
-    x = function() {} $
-
-    ~
-
-    #' this is a documentation comment!
-    #' hooray!
-}
+5 + 15 * 20

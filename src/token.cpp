@@ -2,7 +2,7 @@
 #include <iostream>
 
 // Constructor definition
-Token::Token(Type type, std::string_view lexeme, size_t line, size_t offset)
+Token::Token(Type type, std::string_view lexeme, int line, int offset)
     : type(type), lexeme(lexeme), x(offset), y(line) {}
 
 // Method definition
