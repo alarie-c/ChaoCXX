@@ -7,7 +7,6 @@
 
 #include "errors.hpp"
 #include "lexer.hpp"
-#include "parser.hpp"
 #include "token.hpp"
 
 const char *FILE_PATH = "../main.chao";
@@ -56,8 +55,6 @@ int main() {
     t.print();
 
   reporter->print_errors();
-
-  // Parser parser = Parser(tokens, reporter);
 
   return 0;
 }

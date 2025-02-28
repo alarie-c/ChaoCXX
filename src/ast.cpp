@@ -1,148 +1,218 @@
 #include "ast.hpp"
 #include "token.hpp"
-#include <iostream>
-#include <memory>
 #include <string>
-#include <string_view>
+#include <vector>
 
-// ######################################################################
-// Expressions
-// ######################################################################
+// =================================================================
+// AST OPERATORS
+// =================================================================
 
-AST_Expr::AST_Expr(size_t y, size_t x0, size_t x1) : y(y), x0(x0), x1(x1) {}
+static std::map<Token::Type, AST_Op> operators = {
+    {Token::Type::STAR_STAR, AST_Op::EXPONENT},
+    {Token::Type::STAR, AST_Op::MULTIPLY},
+    {Token::Type::SLASH, AST_Op::DIVIDE},
+    {Token::Type::MODULO, AST_Op::MODULUS},
+    {Token::Type::PLUS, AST_Op::ADD},
+    {Token::Type::MINUS, AST_Op::SUBTRACT},
+    {Token::Type::ARROW, AST_Op::ASSIGN},
+    {Token::Type::STAR_EQUAL, AST_Op::ASSIGN_MULTIPLY},
+    {Token::Type::SLASH_EQUAL, AST_Op::ASSIGN_DIVIDE},
+    {Token::Type::PLUS_EQUAL, AST_Op::ASSIGN_INCREMENT},
+    {Token::Type::MINUS_EQUAL, AST_Op::ASSIGN_DECREMENT},
+    {Token::Type::PLUS_PLUS, AST_Op::INCREMENT},
+    {Token::Type::MINUS_MINUS, AST_Op::DECREMENT},
+    {Token::Type::BAR_BAR, AST_Op::LOGICAL_OR},
+    {Token::Type::AMP_AMP, AST_Op::LOGICAL_AND},
+    {Token::Type::BAR, AST_Op::BITWISE_OR},
+    {Token::Type::AMP, AST_Op::BITWISE_AND},
+    {Token::Type::EQUAL_EQUAL, AST_Op::COMP_EQUAL},
+    {Token::Type::BANG_EQUAL, AST_Op::COMP_NOT_EQUAL},
+    {Token::Type::LESS, AST_Op::COMP_LESS},
+    {Token::Type::LESS_EQUAL, AST_Op::COMP_LESS_EQUAL},
+    {Token::Type::MORE, AST_Op::COMP_MORE},
+    {Token::Type::MORE_EQUAL, AST_Op::COMP_MORE_EQUAL},
 
-AST_Expr_Symbol::AST_Expr_Symbol(const std::string_view &symbol, size_t y,
-                                 size_t x0, size_t x1)
-    : AST_Expr(y, x0, x1), symbol(symbol) {}
+};
 
-void AST_Expr_Symbol::print() const {
-  std::cout << "Symbol: " << this->symbol << "\n";
+std::ostream &operator<<(std::ostream &os, const AST_Op &ast_op) {
+  static std::map<AST_Op, std::string> op_string = {
+      {AST_Op::EXPONENT, "**"},
+      {AST_Op::MULTIPLY, "*"},
+      {AST_Op::DIVIDE, "/"},
+      {AST_Op::MODULUS, "%"},
+      {AST_Op::ADD, "+"},
+      {AST_Op::SUBTRACT, "-"},
+      {AST_Op::ASSIGN, "->"},
+      {AST_Op::ASSIGN_MULTIPLY, "*="},
+      {AST_Op::ASSIGN_DIVIDE, "/="},
+      {AST_Op::ASSIGN_INCREMENT, "+="},
+      {AST_Op::ASSIGN_DECREMENT, "-="},
+      {AST_Op::INCREMENT, "++"},
+      {AST_Op::DECREMENT, "--"},
+      {AST_Op::LOGICAL_OR, "||"},
+      {AST_Op::LOGICAL_AND, "&&"},
+      {AST_Op::BITWISE_OR, "|"},
+      {AST_Op::BITWISE_AND, "&"},
+      {AST_Op::COMP_EQUAL, "=="},
+      {AST_Op::COMP_NOT_EQUAL, "!="},
+      {AST_Op::COMP_LESS, "<"},
+      {AST_Op::COMP_LESS_EQUAL, "<="},
+      {AST_Op::COMP_MORE, ">"},
+      {AST_Op::COMP_MORE_EQUAL, ">="},
+  };
+  os << op_string[ast_op];
+  return os;
 }
 
-AST_Expr_Integer::AST_Expr_Integer(signed long long int value, size_t y,
-                                   size_t x0, size_t x1)
-    : AST_Expr(y, x0, x1), value(value) {}
+// =================================================================
+// AST NODE CONSTRUCTORS
+// =================================================================
 
-void AST_Expr_Integer::print() const {
-  std::cout << "Integer: " << this->value << "\n";
+AST_Node::AST_Node(int line, int start, int stop)
+    : line(line), start(start), stop(stop) {}
+
+AST_Assignment::AST_Assignment(AST_Op op, int line, int start, int stop)
+    : AST_Node(line, start, stop), op(op) {}
+
+AST_Assignment::~AST_Assignment() {
+  delete this->value;
+  delete this->assignee;
 }
 
-AST_Expr_String::AST_Expr_String(const std::string_view &value, size_t y,
-                                 size_t x0, size_t x1)
-    : AST_Expr(y, x0, x1), value(value) {}
+AST_String::AST_String(std::string value, int line, int start, int stop)
+    : AST_Node(line, start, stop), value(value) {}
 
-void AST_Expr_String::print() const {
-  std::cout << "String: " << this->value << "\n";
-}
+AST_Integer::AST_Integer(long long int value, int line, int start, int stop)
+    : AST_Node(line, start, stop), value(value) {}
 
-AST_Expr_Binary::AST_Expr_Binary(Token &op, size_t y, size_t x0, size_t x1)
-    : AST_Expr(y, x0, x1), op(op) {}
+AST_Symbol::AST_Symbol(std::string name, int line, int start, int stop)
+    : AST_Node(line, start, stop), name(name) {}
 
-AST_Expr_Binary::~AST_Expr_Binary() {
+AST_Binary::AST_Binary(AST_Op op, int line, int start, int stop)
+    : AST_Node(line, start, stop), op(op) {}
+
+AST_Binary::~AST_Binary() {
   delete this->left;
   delete this->right;
 }
 
-void AST_Expr_Binary::print() const {
-  std::cout << "{ Binary\n";
-  this->left->print();
-  std::cout << this->op.lexeme << "\n";
-  this->right->print();
-  std::cout << "}\n" << std::endl;
+AST_Logical::AST_Logical(AST_Op op, int line, int start, int stop)
+    : AST_Node(line, start, stop), op(op) {}
+
+AST_Logical::~AST_Logical() {
+  delete this->left;
+  delete this->right;
 }
 
-AST_Expr_Unary::AST_Expr_Unary(Token &op, size_t y, size_t x0, size_t x1)
-    : AST_Expr(y, x0, x1), op(op) {}
+AST_Unary::AST_Unary(AST_Op op, int line, int start, int stop)
+    : AST_Node(line, start, stop), op(op) {}
 
-void AST_Expr_Unary::print() const {
-  std::cout << "Unary: " << this->op.lexeme << " ";
-  this->operand->print();
-  std::cout << std::endl;
+AST_Unary::~AST_Unary() { delete this->operand; }
+
+AST_Call::AST_Call(AST_Node *callee, int line, int start, int stop)
+    : AST_Node(line, start, stop), callee(callee) {}
+
+AST_Call::~AST_Call() {
+  delete this->callee;
+  for (AST_Node *node : this->args)
+    delete node;
 }
 
-AST_Expr_Function::AST_Expr_Function(size_t y, size_t x0, size_t x1)
-    : AST_Expr(y, x0, x1) {}
+AST_Function::AST_Function(int line, int start, int stop)
+    : AST_Node(line, start, stop) {}
 
-void AST_Expr_Function::print() const {
-  std::cout << "{ Function\n";
-  for (const auto *p : this->params)
-    p->print();
-  this->return_type->print();
-  std::cout << "}\n" << std::endl;
+AST_Function::~AST_Function() {
+  delete this->return_type;
+
+  for (AST_Node *node : this->params)
+    delete node;
+  for (AST_Node *node : this->body)
+    delete node;
 }
 
-// ######################################################################
-// Statements
-// ######################################################################
+AST_Grouping::AST_Grouping(AST_Node *inner, int line, int start, int stop)
+    : AST_Node(line, start, stop), inner(inner) {}
 
-AST_Stmt::AST_Stmt() {}
+AST_Grouping::~AST_Grouping() { delete this->inner; }
 
-AST_Stmt_Binding::AST_Stmt_Binding(const Token &id, bool mut)
-    : id(id), mut(mut) {}
+// =================================================================
+// AST NODE PRINT OVERRIDES
+// =================================================================
 
-AST_Stmt_Binding::~AST_Stmt_Binding() { delete this->value; }
-
-void AST_Stmt_Binding::print() const {
-  std::cout << "{ Binding\n";
-  std::cout << this->id.lexeme;
-  this->value->print();
-  std::cout << "mutable: " << this->mut << "\n}" << std::endl;
-}
-
-AST_Stmt_Assignment::AST_Stmt_Assignment(const Token &op) : op(op) {}
-AST_Stmt_Assignment::~AST_Stmt_Assignment() {
-  delete this->assignee;
-  delete this->value;
-}
-
-void AST_Stmt_Assignment::print() const {
+void AST_Assignment::print() const {
   std::cout << "{ Assignment\n";
   this->assignee->print();
-  std::cout << this->op.lexeme;
+  std::cout << this->op << "\n";
   this->value->print();
+  std::cout << "\n}" << std::endl;
+}
+
+void AST_String::print() const {
+  std::cout << "String: " << this->value << std::endl;
+}
+
+void AST_Integer::print() const {
+  std::cout << "Integer: " << this->value << std::endl;
+}
+
+void AST_Symbol::print() const {
+  std::cout << "Symbol: " << this->name << std::endl;
+}
+
+void AST_Binary::print() const {
+  std::cout << "{ Binary\n";
+  this->left->print();
+  std::cout << this->op << "\n";
+  this->right->print();
+  std::cout << "\n}" << std::endl;
+}
+
+void AST_Logical::print() const {
+  std::cout << "{ Logical\n";
+  this->left->print();
+  std::cout << this->op << "\n";
+  this->right->print();
+  std::cout << "\n}" << std::endl;
+}
+
+void AST_Unary::print() const {
+  std::cout << "{ Unary\n";
+  std::cout << this->op << "\n";
+  this->operand->print();
+  std::cout << "\n}" << std::endl;
+}
+
+void AST_Call::print() const {
+  std::cout << "{ Call\n";
+  this->callee->print();
+  for (AST_Node *node : this->args)
+    node->print();
   std::cout << "}\n" << std::endl;
 }
 
-AST_Stmt_Expression::AST_Stmt_Expression(AST_Expr *expr) : expr(expr) {}
-AST_Stmt_Expression::~AST_Stmt_Expression() { delete this->expr; }
-
-void AST_Stmt_Expression::print() const {
-  std::cout << "Expr: ";
-  this->expr->print();
-  std::cout << std::endl;
-}
-
-AST_Allocator::~AST_Allocator() {
-  // Iterate through and delete all the heap node pointers,
-  // Stack-allocated nodes will be freed automatically
-  for (AST_Expr *node : this->heap_nodes) {
-    delete node;
-  }
-}
-
-void AST_Allocator::allocate(AST_Expr *node) {
-  // (Note) I don't like doing this selection everytime I wonder if there's a
-  // better way
-  if (this->stack_index < this->BUFFER_SIZE) {
-    // Allocate this node on the stack since there's space
-    this->stack_buffer[this->stack_index++] = node;
-  } else {
-    // Allocate this node on the heap
-    this->heap_nodes.push_back(node);
-  }
-}
-
-void AST_Allocator::print() const {
-  // Print out all the stack allocated nodes since they were allocated first
-  for (size_t i = 0; i < this->stack_index; i++) {
-    this->stack_buffer[i]->print();
-  }
-
-  if (this->heap_nodes.empty())
-    return;
-
-  // Then print everything on the heap
-  for (const AST_Expr *node : this->heap_nodes) {
+void AST_Function::print() const {
+  std::cout << "{ Function\n";
+  for (AST_Node *node : this->params)
     node->print();
-  }
+  this->return_type->print();
+  for (AST_Node *node : this->body)
+    node->print();
+  std::cout << "}\n" << std::endl;
 }
+
+void AST_Grouping::print() const {
+  std::cout << "{ Grouping\n";
+  this->inner->print();
+  std::cout << "}\n" << std::endl;
+}
+
+// =================================================================
+// PARSE TREE
+// =================================================================
+
+Parse_Tree::~Parse_Tree() {
+  for (AST_Node *n : this->nodes)
+    delete n;
+}
+
+void Parse_Tree::allocate(AST_Node *node) { this->nodes.push_back(node); }

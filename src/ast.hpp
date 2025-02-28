@@ -1,128 +1,164 @@
-#ifndef AST_H
-#define AST_H
-
 #include "token.hpp"
-#include <iostream>
-#include <memory>
 #include <string>
-#include <string_view>
 #include <vector>
 
-struct AST_Expr {
-  size_t y;
-  size_t x0;
-  size_t x1;
+enum AST_Op {
+  EXPONENT,
+  MULTIPLY,
+  DIVIDE,
+  MODULUS,
+  ADD,
+  SUBTRACT,
+  ASSIGN,
+  ASSIGN_MULTIPLY,
+  ASSIGN_DIVIDE,
+  ASSIGN_INCREMENT,
+  ASSIGN_DECREMENT,
+  INCREMENT,
+  DECREMENT,
 
-  AST_Expr(size_t y, size_t x0, size_t x1);
-  virtual ~AST_Expr() = default;
+  // Non-arithmetic
+  LOGICAL_OR,
+  LOGICAL_AND,
+  BITWISE_OR,
+  BITWISE_AND,
+
+  // Comparisons
+  COMP_EQUAL,
+  COMP_NOT_EQUAL,
+  COMP_LESS,
+  COMP_LESS_EQUAL,
+  COMP_MORE,
+  COMP_MORE_EQUAL
+};
+
+// Utility functions for AST_Op
+extern std::map<Token::Type &&, AST_Op> operators;
+std::ostream &operator<<(std::ostream &os, const AST_Op &ast_op);
+
+struct AST_Node {
+  int line;
+  int start;
+  int stop;
+
+  AST_Node(int line, int start, int stop);
+  virtual ~AST_Node() = default;
   virtual void print() const = 0;
 };
 
-struct AST_Expr_Symbol : public AST_Expr {
-  std::string_view symbol;
+// Represents the assignment of one thing to a new value
+// `ID | PATH` `->` `EXPR`
+struct AST_Assignment : public AST_Node {
+  AST_Node *assignee;
+  AST_Op op;
+  AST_Node *value;
 
-  AST_Expr_Symbol(const std::string_view &symbol, size_t y, size_t x0,
-                  size_t x1);
+  AST_Assignment(AST_Op op, int line, int start, int stop);
+  ~AST_Assignment();
   void print() const override;
 };
 
-struct AST_Expr_Integer : public AST_Expr {
-  signed long long int value;
+// Represents a basic string literal
+// `STRING LITERAL`
+struct AST_String : public AST_Node {
+  std::string value;
 
-  AST_Expr_Integer(signed long long int value, size_t y, size_t x0, size_t x1);
+  AST_String(std::string value, int line, int start, int stop);
   void print() const override;
 };
 
-struct AST_Expr_String : public AST_Expr {
-  std::string_view value;
-
-  AST_Expr_String(const std::string_view &value, size_t y, size_t x0,
-                  size_t x1);
+// Represents an integer literal
+// `NUMBER LITERAL` where `lexeme` contains no dot chars
+struct AST_Integer : public AST_Node {
+  long long int value;
+  AST_Integer(long long int value, int line, int start, int stop);
   void print() const override;
 };
 
-struct AST_Expr_Binary : public AST_Expr {
-  AST_Expr *left;
-  AST_Expr *right;
-  Token &op;
-
-  // Binary expressions are constructed with null `left` and `right` fields
-  // which sould be added after they are parsed.
-  // Binary expression struct is created once operator token is matched
-  AST_Expr_Binary(Token &op, size_t y, size_t x0, size_t x1);
-  ~AST_Expr_Binary();
+// Represents any symbol literal
+// `SYMBOL LITERAL`
+struct AST_Symbol : public AST_Node {
+  std::string name;
+  AST_Symbol(std::string name, int line, int start, int stop);
   void print() const override;
 };
 
-struct AST_Expr_Unary : public AST_Expr {
-  AST_Expr *operand;
-  Token &op;
+// Represents a binary expression with an infix operator
+// `EXPR` `+ | - | * | / | ** | %` `EXPR`
+struct AST_Binary : public AST_Node {
+  AST_Node *left;
+  AST_Node *right;
+  AST_Op op;
 
-  AST_Expr_Unary(Token &op, size_t y, size_t x0, size_t x1);
-  ~AST_Expr_Unary();
+  // AST_Binary should have members `left` and `right` assigned after creation
+  // Thusly, `left` and `right` are both `nullptr`
+  AST_Binary(AST_Op op, int line, int start, int stop);
+  ~AST_Binary();
   void print() const override;
 };
 
-struct AST_Expr_Function : public AST_Expr {
-  std::vector<AST_Expr *> params;
-  AST_Expr *return_type;
+// Represents a logical expression with an infix logical operator
+// `EXPR` `|| | && | IS | IS NOT` `EXPR`
+struct AST_Logical : public AST_Node {
+  AST_Node *left;
+  AST_Node *right;
+  AST_Op op;
 
-  AST_Expr_Function(size_t y, size_t x0, size_t x1);
-  ~AST_Expr_Function();
+  // AST_Logical should have members `left` and `right` assigned after creation
+  // Thusly, `left` and `right` are both `nullptr`
+  AST_Logical(AST_Op op, int line, int start, int stop);
+  ~AST_Logical();
   void print() const override;
 };
 
-struct AST_Stmt {
-  AST_Stmt();
-  virtual ~AST_Stmt() = default;
-  virtual void print() const = 0;
-};
+struct AST_Unary : public AST_Node {
+  AST_Node *operand;
+  AST_Op op;
 
-struct AST_Stmt_Binding : AST_Stmt {
-  bool mut;
-  const Token &id;
-  AST_Expr *value;
-
-  AST_Stmt_Binding(const Token &id, bool mut);
-  ~AST_Stmt_Binding();
+  AST_Unary(AST_Op op, int line, int start, int stop);
+  ~AST_Unary();
   void print() const override;
 };
 
-struct AST_Stmt_Assignment : AST_Stmt {
-  AST_Expr *assignee;
-  AST_Expr *value;
-  const Token &op;
+struct AST_Call : public AST_Node {
+  AST_Node *callee;
+  std::vector<AST_Node *> args;
 
-  AST_Stmt_Assignment(const Token &op);
-  ~AST_Stmt_Assignment();
+  // `args` is an empty vector upon creation
+  AST_Call(AST_Node *callee, int line, int start, int stop);
+  ~AST_Call();
   void print() const override;
 };
 
-struct AST_Stmt_Expression : AST_Stmt {
-  AST_Expr *expr;
+// Represents a function declaration
+struct AST_Function : public AST_Node {
+  std::vector<AST_Node *> params;
+  AST_Node *return_type;
+  std::vector<AST_Node *> body;
 
-  AST_Stmt_Expression(AST_Expr *expr);
-  ~AST_Stmt_Expression();
+  // Members `params`, `body`, and `return_type` are `nullptr` or empty upon
+  // creation
+  AST_Function(int line, int start, int stop);
+  ~AST_Function();
   void print() const override;
 };
 
-class AST_Allocator {
-  static constexpr size_t BUFFER_SIZE = 16;
+// Represents any basic type of grouping expression
+// `LPAR` `EXPR` `RPAR`
+struct AST_Grouping : public AST_Node {
+  AST_Node *inner;
 
-  // An array on the stack to hold AST_Nodes
-  AST_Expr *stack_buffer[BUFFER_SIZE];
+  AST_Grouping(AST_Node *inner, int line, int start, int stop);
+  ~AST_Grouping();
+  void print() const override;
+};
 
-  // An index to track where on the stack the last AST_Node is
-  size_t stack_index = 0;
-
-  // Will begin to hold AST_Nodes once the stack buffer is full
-  std::vector<AST_Expr *> heap_nodes;
+class Parse_Tree {
+  std::vector<AST_Node *> nodes;
 
 public:
-  ~AST_Allocator();
+  void allocate(AST_Node *node);
 
-  void allocate(AST_Expr *node);
-  void print() const;
+  Parse_Tree();
+  ~Parse_Tree();
 };
-
-#endif
