@@ -138,7 +138,7 @@ struct AST_Call : public AST_Node {
 struct AST_Function : public AST_Node {
   std::vector<AST_Node *> params;
   AST_Node *return_type;
-  std::vector<AST_Node *> body;
+  AST_Node *body;
 
   // Members `params`, `body`, and `return_type` are `nullptr` or empty upon
   // creation
@@ -154,6 +154,44 @@ struct AST_Grouping : public AST_Node {
 
   AST_Grouping(AST_Node *inner, int line, int start, int stop);
   ~AST_Grouping();
+  void print() const override;
+};
+
+struct AST_Block : public AST_Node {
+  std::vector<AST_Node *> nodes;
+
+  AST_Block(int line, int start, int stop);
+  ~AST_Block();
+  void append(AST_Node *node);
+  void print() const override;
+};
+
+struct AST_Variable_Decl : public AST_Node {
+  bool mut;
+  std::string symbol;
+  std::optional<AST_Node *> initializer;
+
+  AST_Variable_Decl(bool mut, std::string symbol, int line, int start, int stop);
+  ~AST_Variable_Decl();
+  void print() const override;
+};
+
+struct AST_If_Stmt : public AST_Node {
+  AST_Node *condition;
+  AST_Node *branch_if;
+  AST_Node *branch_else;
+
+  AST_If_Stmt(int line, int start, int stop);
+  ~AST_If_Stmt();
+  void print() const override;
+};
+
+struct AST_While_Loop : public AST_Node {
+  AST_Node *condition;
+  AST_Node *body;
+
+  AST_While_Loop(int line, int start, int stop);
+  ~AST_While_Loop();
   void print() const override;
 };
 
