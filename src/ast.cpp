@@ -1,7 +1,9 @@
 #include "ast.hpp"
 #include "token.hpp"
+#include <iostream>
 #include <string>
 #include <vector>
+
 
 // =================================================================
 // AST OPERATORS
