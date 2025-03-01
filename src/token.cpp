@@ -18,6 +18,7 @@ std::ostream &operator<<(std::ostream &os, const Token::Type &type) {
       {Token::Type::END_OF_FILE, "EOF"},
       {Token::Type::NEWLINE, "NEWLINE"},
       {Token::Type::DOC, "DOC"},
+      {Token::Type::HASH_BRAC, "HASH_BRAC"},
 
       // Grouping
       {Token::Type::RPAREN, "R_PAREN"},

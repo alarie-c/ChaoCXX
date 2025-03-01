@@ -179,6 +179,11 @@ void Lexer::scan() {
       bool docs = false;
       if (peek() == '\'')
         docs = true;
+      else if (peek() == '[') {
+        this->output.push_back(
+            Token(Token::Type::HASH_BRAC, LEXEME_SV, this->line, start));
+        break;
+      }
 
       while (peek() != '\n')
         this->cursor++;
@@ -239,7 +244,9 @@ void Lexer::scan() {
       break;
     this->cursor++;
   }
-  this->output.push_back(Token(Token::Type::END_OF_FILE, std::string_view{"{ EOF }"}, this->line, this->cursor));
+  this->output.push_back(Token(Token::Type::END_OF_FILE,
+                               std::string_view{"{ EOF }"}, this->line,
+                               this->cursor));
 }
 
 char Lexer::next() {

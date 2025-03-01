@@ -17,6 +17,7 @@ struct Token {
     END_OF_FILE,
     NEWLINE,
     DOC,
+    HASH_BRAC,
 
     // GROUPING
     LPAREN,
