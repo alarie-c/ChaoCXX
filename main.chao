@@ -1,1 +1,4 @@
-5 + 15 * 20
+function(x: int): string {
+    5 + 20
+    60 * 90
+}

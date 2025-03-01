@@ -1,11 +1,11 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include <vector>
 #include "ast.hpp"
-#include "token.hpp"
 #include "errors.hpp"
+#include "token.hpp"
 #include <optional>
+#include <vector>
 
 class Parser {
   std::vector<Token> stream;
@@ -26,9 +26,14 @@ private:
   bool peek_consume_if(Token::Type asserted_type);
   bool peek_consume_if(std::vector<Token::Type> asserted_types);
 
-  void error_here(Error::Type error_type, Error::Flag flag, AST_Node *expr, std::string message);
+  void error_here(Error::Type error_type, Error::Flag flag, AST_Node *expr,
+                  std::string message);
 
 private:
+  std::vector<AST_Parameter *> function_parameters();
+  std::vector<AST_Node *> call_arguments();
+  AST_Block *block();
+
   AST_Node *primary();
   AST_Node *function();
   AST_Node *call();

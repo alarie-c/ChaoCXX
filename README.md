@@ -11,10 +11,10 @@ A rewrite of my Chao programming language, which was originally done in Rust, th
 - [ ] Non-decimal numbers 
 
 ## 2. Parser
-- [ ] Symbols
-- [ ] Strings
+- [x] Symbols
+- [x] Strings
 - [ ] Numbers
-- [ ] Binary expressions
+- [x] Binary expressions
 - [ ] Logical expressions
 - [ ] Function expressions
 - [ ] Functional calls
@@ -25,3 +25,5 @@ A rewrite of my Chao programming language, which was originally done in Rust, th
 - [ ] Operator overloading
 - [ ] Class declaration
 - [ ] Enum declaration
+- [ ] Decorators
+- [ ] Compiler directives

@@ -3,6 +3,7 @@
 
 #include "token.hpp"
 #include <iostream>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -134,10 +135,20 @@ struct AST_Call : public AST_Node {
   void print() const override;
 };
 
+struct AST_Parameter : public AST_Node {
+  std::string name;
+  AST_Node *type;
+  std::optional<AST_Node *> initializer;
+
+  AST_Parameter(std::string name, int line, int start, int stop);
+  ~AST_Parameter();
+  void print() const override;
+};
+
 // Represents a function declaration
 struct AST_Function : public AST_Node {
-  std::vector<AST_Node *> params;
-  AST_Node *return_type;
+  std::vector<AST_Parameter *> params;
+  std::optional<AST_Node *> return_type;
   AST_Node *body;
 
   // Members `params`, `body`, and `return_type` are `nullptr` or empty upon
@@ -171,29 +182,30 @@ struct AST_Variable_Decl : public AST_Node {
   std::string symbol;
   std::optional<AST_Node *> initializer;
 
-  AST_Variable_Decl(bool mut, std::string symbol, int line, int start, int stop);
+  AST_Variable_Decl(bool mut, std::string symbol, int line, int start,
+                    int stop);
   ~AST_Variable_Decl();
   void print() const override;
 };
 
-struct AST_If_Stmt : public AST_Node {
-  AST_Node *condition;
-  AST_Node *branch_if;
-  AST_Node *branch_else;
+// struct AST_If_Stmt : public AST_Node {
+//   AST_Node *condition;
+//   AST_Node *branch_if;
+//   AST_Node *branch_else;
 
-  AST_If_Stmt(int line, int start, int stop);
-  ~AST_If_Stmt();
-  void print() const override;
-};
+//   AST_If_Stmt(int line, int start, int stop);
+//   ~AST_If_Stmt();
+//   void print() const override;
+// };
 
-struct AST_While_Loop : public AST_Node {
-  AST_Node *condition;
-  AST_Node *body;
+// struct AST_While_Loop : public AST_Node {
+//   AST_Node *condition;
+//   AST_Node *body;
 
-  AST_While_Loop(int line, int start, int stop);
-  ~AST_While_Loop();
-  void print() const override;
-};
+//   AST_While_Loop(int line, int start, int stop);
+//   ~AST_While_Loop();
+//   void print() const override;
+// };
 
 class Parse_Tree {
   std::vector<AST_Node *> nodes;
@@ -201,7 +213,7 @@ class Parse_Tree {
 public:
   void allocate(AST_Node *node);
   void print_all();
-  
+
   Parse_Tree();
   ~Parse_Tree();
 };

@@ -10,19 +10,22 @@ Reporter::Reporter(const std::string file_name, const std::string path,
                    const std::string &source)
     : file_name(file_name), path(path), source(source) {}
 
-void Reporter::new_error(Error::Type type, size_t line, size_t start, size_t end, Error::Flag flag, std::string message) {
+void Reporter::new_error(Error::Type type, size_t line, size_t start,
+                         size_t end, Error::Flag flag, std::string message) {
   std::cout << "Pushing a new error: " << type << std::endl;
-  
-  Error* error = new Error(type, line, start, end, flag, message);
+
+  Error *error = new Error(type, line, start, end, flag, message);
   std::cout << error->message << std::endl;
   this->errors.push_back(error);
 };
 
-Error::Error(Type t, size_t line, size_t x0, size_t x1, Flag flag, std::string message)
-    : type(t), line(line), x0(x0), x1(x1), flag(flag), message(std::move(message)) {}
+Error::Error(Type t, size_t line, size_t x0, size_t x1, Flag flag,
+             std::string message)
+    : type(t), line(line), x0(x0), x1(x1), flag(flag),
+      message(std::move(message)) {}
 
 void Reporter::print_errors() const {
-  int n_errors = 1;  
+  int n_errors = 1;
   for (Error *e : this->errors) {
     // Do some bounds checking
     if (e->x1 > this->source.length()) {
@@ -63,7 +66,7 @@ void Reporter::print_errors() const {
 
     // Get the whitespace for the underline output
     size_t ws_n = e->x0 - ln_start; // Difference from the start of the line to
-                                   // the start of the underlined region
+                                    // the start of the underlined region
     size_t underline_len = e->x1 - e->x0 + 1;
 
     // Construct the underlining string
@@ -86,6 +89,10 @@ std::ostream &operator<<(std::ostream &os, const Error &e) {
       {Error::Type::SYNTAX_ERROR, "Syntax Error"},
       {Error::Type::NONTERMINATING_STRLITERAL,
        "Non-terminating String Literal"},
+      {Error::Type::TOO_MANY_ARGS, "Too Many Arguments"},
+      {Error::Type::TOO_MANY_PARAMS, "Too Many Parameters"},
+      {Error::Type::TOO_MANY_MEMBERS, "Too Many Members"},
+      {Error::Type::TOO_MANY_VARIANTS, "Too Many Variants"},
   };
   os << types[e.type];
   return os;

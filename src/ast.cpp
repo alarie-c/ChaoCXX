@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 
-
 // =================================================================
 // AST OPERATORS
 // =================================================================
@@ -130,12 +129,43 @@ AST_Function::AST_Function(int line, int start, int stop)
     : AST_Node(line, start, stop) {}
 
 AST_Function::~AST_Function() {
-  delete this->return_type;
+  if (this->return_type)
+    delete this->return_type.value();
 
   for (AST_Node *node : this->params)
     delete node;
-  for (AST_Node *node : this->body)
+  this->params.clear();
+
+  delete this->body;
+}
+
+AST_Parameter::AST_Parameter(std::string name, int line, int start, int stop)
+    : AST_Node(line, start, stop), name(name) {}
+
+AST_Parameter::~AST_Parameter() {
+  if (this->initializer)
+    delete this->initializer.value();
+  delete this->type;
+}
+
+AST_Block::AST_Block(int line, int start, int stop)
+    : AST_Node(line, start, stop) {}
+
+AST_Block::~AST_Block() {
+  for (AST_Node *node : this->nodes)
     delete node;
+  this->nodes.clear();
+}
+
+void AST_Block::append(AST_Node *node) { this->nodes.push_back(node); }
+
+AST_Variable_Decl::AST_Variable_Decl(bool mut, std::string symbol, int line,
+                                     int start, int stop)
+    : AST_Node(line, start, stop), mut(mut), symbol(symbol) {}
+
+AST_Variable_Decl::~AST_Variable_Decl() {
+  if (this->initializer)
+    delete this->initializer.value();
 }
 
 AST_Grouping::AST_Grouping(AST_Node *inner, int line, int start, int stop)
@@ -193,18 +223,18 @@ void AST_Unary::print() const {
 void AST_Call::print() const {
   std::cout << "{ Call\n";
   this->callee->print();
-  for (AST_Node *node : this->args)
+  for (const AST_Node *node : this->args)
     node->print();
   std::cout << "}" << std::endl;
 }
 
 void AST_Function::print() const {
   std::cout << "{ Function\n";
-  for (AST_Node *node : this->params)
+  for (const AST_Node *node : this->params)
     node->print();
-  this->return_type->print();
-  for (AST_Node *node : this->body)
-    node->print();
+  if (this->return_type)
+    this->return_type.value()->print();
+  this->body->print();
   std::cout << "}" << std::endl;
 }
 
@@ -212,6 +242,28 @@ void AST_Grouping::print() const {
   std::cout << "{ Grouping\n";
   this->inner->print();
   std::cout << "}" << std::endl;
+}
+
+void AST_Parameter::print() const {
+  std::cout << "{ Parameter\n" << this->name;
+  this->type->print();
+  if (this->initializer)
+    this->initializer.value()->print();
+  std::cout << "}" << std::endl;
+}
+
+void AST_Block::print() const {
+  std::cout << "{ Block\n";
+  for (const AST_Node *node : this->nodes)
+    node->print();
+  std::cout << "}" << std::endl;
+}
+
+void AST_Variable_Decl::print() const {
+  std::cout << "{ Variable Decl\n";
+  std::cout << this->symbol << "\n" << this->mut << "\n";
+  if (this->initializer)
+    this->initializer.value()->print();
 }
 
 // =================================================================
