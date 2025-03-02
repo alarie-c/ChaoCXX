@@ -110,7 +110,7 @@ std::vector<AST_Parameter *> Parser::function_parameters() {
     int start = tk.x;
     int stop = tk.x + tk.lexeme.length() - 1;
 
-    if (params.size() >= 255) {
+    if (params.size() > 255) {
       this->reporter->new_error(
           Error::Type::TOO_MANY_PARAMS, line, start, stop, Error::Flag::ABORT,
           "Functions cannot have more than 255 parameters");
@@ -215,6 +215,53 @@ AST_Block *Parser::block() {
   return node;
 }
 
+std::vector<AST_Node *> Parser::call_arguments() {
+  std::vector<AST_Node *> args;
+
+  if (this->current().type == Token::Type::RPAREN)
+    return args;
+
+  while (this->current().type != Token::Type::RPAREN) {
+    Token &tk = this->current();
+    int line = tk.y;
+    int start = tk.x;
+    int stop = tk.x + tk.lexeme.length() - 1;
+
+    if (args.size() > 255) {
+      this->reporter->new_error(
+          Error::Type::TOO_MANY_ARGS, line, start, stop, Error::Flag::ABORT,
+          "Function calls cannot have more than 255 arguments");
+      this->pos++;
+      continue;
+    }
+
+    AST_Node *expr = this->expression();
+    args.push_back(expr);
+
+    // if the next thing isnt a comma, then expect RPAREN to close
+    if (this->peek_consume_if(Token::Type::COMMA)) {
+      this->pos++;
+      continue;
+    }
+
+    if (this->peek_consume_if(Token::Type::RPAREN))
+      std::cout << "Got the RPAR here" << std::endl;
+    break;
+
+    tk = this->current();
+    line = tk.y;
+    start = tk.x;
+    stop = tk.x + tk.lexeme.length() - 1;
+    this->reporter->new_error(
+        Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT,
+        "Expected an ')' to close function call argument, did you forget a "
+        "comma after the previous argument?");
+    return args;
+  }
+  std::cout << "Got the RPAR here instead" << std::endl;
+  return args;
+}
+
 // ---------------------------------------------------------------------
 // EXPRESSION PARSERS
 // ---------------------------------------------------------------------
@@ -252,19 +299,6 @@ AST_Node *Parser::primary() {
   }
   }
 }
-
-// AST_Node *Parser::call() {
-//   AST_Node *expr = this->primary();
-
-//   while (true) {
-//     if (this->peek_consume_if(Token::Type::LPAREN)) {
-//       this->pos++;
-
-//       // Use expression as the callee
-
-//     }
-//   }
-// }
 
 AST_Node *Parser::function() {
   Token &tk = this->current();
@@ -315,6 +349,34 @@ AST_Node *Parser::function() {
   return this->primary();
 }
 
+AST_Node *Parser::call() {
+  AST_Node *expr = this->function();
+
+  while (true) {
+    if (this->peek_consume_if(Token::Type::LPAREN)) {
+      Token &tk = this->current();
+      int line = tk.y;
+      int start = tk.x;
+      int stop = tk.x + tk.lexeme.length() - 1;
+
+      AST_Call *n = new AST_Call(expr, line, start, stop);
+      this->pos++;
+
+      // Use expression as the callee
+      std::vector<AST_Node *> args = this->call_arguments();
+      if (this->current().type != Token::Type::RPAREN) {
+        std::cerr << "ERROR parsing function args missing RPAREN" << std::endl;
+        return nullptr;
+      }
+
+      n->args = args;
+      expr = n;
+    }
+    break;
+  }
+  return expr;
+}
+
 AST_Node *Parser::unary() {
   auto op = operator_from_token(this->current());
   if (op) {
@@ -331,7 +393,7 @@ AST_Node *Parser::unary() {
     n->operand = operand;
     return n;
   }
-  return this->function();
+  return this->call();
 }
 
 AST_Node *Parser::factor() {
@@ -453,7 +515,7 @@ AST_Node *Parser::assignment() {
     int line = tk.y;
     int start = tk.x;
     int stop = tk.x + tk.lexeme.length() - 1;
-    std::cout << "found assignment" << std::endl;
+
     AST_Op op = *(operator_from_token(tk));
     this->pos++;
     AST_Assignment *n = new AST_Assignment(op, line, start, stop);
