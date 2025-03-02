@@ -90,6 +90,10 @@ void Parser::error_here(Error::Type error_type, Error::Flag flag,
   this->reporter->new_error(error_type, line, start, stop, flag, message);
 }
 
+template <typename T> bool Parser::assert_node_type(AST_Node *node) {
+  return dynamic_cast<T *>(node) != nullptr;
+}
+
 // ---------------------------------------------------------------------
 // HELPER PARSERS
 // ---------------------------------------------------------------------
@@ -178,7 +182,7 @@ AST_Block *Parser::block() {
     if (this->current().type == Token::Type::RCURL)
       break;
 
-    AST_Node *expr = this->expression();
+    AST_Node *expr = this->statement();
     if (expr != nullptr)
       node->append(expr);
 
@@ -449,7 +453,9 @@ AST_Node *Parser::assignment() {
     int line = tk.y;
     int start = tk.x;
     int stop = tk.x + tk.lexeme.length() - 1;
+    std::cout << "found assignment" << std::endl;
     AST_Op op = *(operator_from_token(tk));
+    this->pos++;
     AST_Assignment *n = new AST_Assignment(op, line, start, stop);
 
     // Get the value node
@@ -465,6 +471,7 @@ AST_Node *Parser::assignment() {
 
     n->assignee = expr;
     n->value = value;
+    return n;
   }
   return expr;
 }
@@ -515,6 +522,8 @@ AST_Node *Parser::end_statement(AST_Node *stmt) {
 }
 
 AST_Node *Parser::statement() {
+  std::cout << "Entering statement: " << this->current().lexeme << std::endl;
+
   Token &tk = this->current();
   int line = tk.y;
   int start = tk.x;
@@ -531,6 +540,7 @@ AST_Node *Parser::statement() {
       // this is a constant binding
       return this->end_statement(this->initialized_binding(tk, false));
     }
+    break;
   }
 
   case Token::Type::MUT: {
@@ -564,4 +574,18 @@ AST_Node *Parser::statement() {
     return nullptr;
   }
   }
+
+  AST_Node *expr = this->expression();
+  std::cout << "Parsed expression node type: " << typeid(*expr).name()
+            << std::endl;
+  if (this->assert_node_type<AST_Call>(expr) ||
+      this->assert_node_type<AST_Assignment>(expr)) {
+    // This is a normal expression statement
+    return expr;
+  }
+  this->reporter->new_error(Error::Type::SYNTAX_ERROR, expr->line, expr->start,
+                            expr->stop, Error::Flag::ABORT,
+                            "Expressions must be meaningful and/or have "
+                            "side-effects to exist on their own like this");
+  return nullptr;
 }

@@ -33,6 +33,8 @@ private:
   std::vector<AST_Parameter *> function_parameters();
   std::vector<AST_Node *> call_arguments();
   void skip_to_endof_statement();
+  template <typename T> bool assert_node_type(AST_Node *node);
+
   AST_Block *block();
 
   AST_Node *primary();

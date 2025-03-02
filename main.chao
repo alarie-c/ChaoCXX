@@ -1,1 +1,4 @@
-mut 50 = 30 # this is a comment
+main = function() {
+    mut a = 20
+    a -> 30
+}
