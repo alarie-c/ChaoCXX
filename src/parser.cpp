@@ -23,7 +23,7 @@ void Parser::parse() {
     } else if (current.type == Token::Type::END_OF_FILE) {
       return;
     }
-    AST_Node *new_node = this->expression();
+    AST_Node *new_node = this->statement();
     if (new_node == nullptr) {
       std::cerr << "Got nullptr for .." << this->current().lexeme << std::endl;
       this->pos++;
@@ -481,3 +481,87 @@ AST_Node *Parser::expression() {
 // ---------------------------------------------------------------------
 // STATEMENT PARSERS
 // ---------------------------------------------------------------------
+
+void Parser::skip_to_endof_statement() {
+  while (true) {
+    Token &tk = this->current();
+    switch (tk.type) {
+    case Token::Type::NEWLINE:
+    case Token::Type::SEMICOLON:
+    case Token::Type::END_OF_FILE:
+      return;
+    default:
+      this->pos++;
+    }
+  }
+}
+
+AST_Node *Parser::initialized_binding(Token &token, bool mut) {
+  this->pos++; // consume =
+  int line = token.y;
+  int start = token.x;
+  int stop = token.x + token.lexeme.length() - 1;
+  AST_Binding *node =
+      new AST_Binding(mut, std::string{token.lexeme}, line, start, stop);
+
+  std::optional<AST_Node *> initializer = this->expression();
+  node->initializer = initializer;
+  return node;
+}
+
+AST_Node *Parser::end_statement(AST_Node *stmt) {
+  this->skip_to_endof_statement();
+  return stmt;
+}
+
+AST_Node *Parser::statement() {
+  Token &tk = this->current();
+  int line = tk.y;
+  int start = tk.x;
+  int stop = tk.x + tk.lexeme.length() - 1;
+
+  switch (tk.type) {
+  case Token::Type::NEWLINE: {
+    this->pos++;
+    return this->statement();
+  }
+
+  case Token::Type::SYMBOL: {
+    if (this->peek_consume_if(Token::Type::EQUAL)) {
+      // this is a constant binding
+      return this->end_statement(this->initialized_binding(tk, false));
+    }
+  }
+
+  case Token::Type::MUT: {
+    this->pos++;
+    tk = this->current();
+    int line = tk.y;
+    int start = tk.x;
+    int stop = tk.x + tk.lexeme.length() - 1;
+
+    if (tk.type != Token::Type::SYMBOL) {
+      this->reporter->new_error(
+          Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT,
+          "Expected this to be an identifier after keyword 'mut'");
+
+      this->skip_to_endof_statement();
+      this->pos++;
+      return nullptr;
+    }
+
+    if (this->peek_consume_if(Token::Type::EQUAL)) {
+      // this is a mutable binding
+      return this->end_statement(this->initialized_binding(tk, true));
+    }
+
+    this->reporter->new_error(
+        Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT,
+        "Expected an '=' after keyword 'mut' and identifier");
+
+    this->skip_to_endof_statement();
+    this->pos++;
+    return nullptr;
+  }
+  }
+}

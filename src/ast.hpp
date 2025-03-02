@@ -177,14 +177,13 @@ struct AST_Block : public AST_Node {
   void print() const override;
 };
 
-struct AST_Variable_Decl : public AST_Node {
+struct AST_Binding : public AST_Node {
   bool mut;
   std::string symbol;
   std::optional<AST_Node *> initializer;
 
-  AST_Variable_Decl(bool mut, std::string symbol, int line, int start,
-                    int stop);
-  ~AST_Variable_Decl();
+  AST_Binding(bool mut, std::string symbol, int line, int start, int stop);
+  ~AST_Binding();
   void print() const override;
 };
 

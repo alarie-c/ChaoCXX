@@ -159,11 +159,11 @@ AST_Block::~AST_Block() {
 
 void AST_Block::append(AST_Node *node) { this->nodes.push_back(node); }
 
-AST_Variable_Decl::AST_Variable_Decl(bool mut, std::string symbol, int line,
-                                     int start, int stop)
+AST_Binding::AST_Binding(bool mut, std::string symbol, int line, int start,
+                         int stop)
     : AST_Node(line, start, stop), mut(mut), symbol(symbol) {}
 
-AST_Variable_Decl::~AST_Variable_Decl() {
+AST_Binding::~AST_Binding() {
   if (this->initializer)
     delete this->initializer.value();
 }
@@ -259,7 +259,7 @@ void AST_Block::print() const {
   std::cout << "}" << std::endl;
 }
 
-void AST_Variable_Decl::print() const {
+void AST_Binding::print() const {
   std::cout << "{ Variable Decl\n";
   std::cout << this->symbol << "\n" << this->mut << "\n";
   if (this->initializer)

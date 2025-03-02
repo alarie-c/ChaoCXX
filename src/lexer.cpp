@@ -185,8 +185,11 @@ void Lexer::scan() {
         break;
       }
 
-      while (peek() != '\n')
+      this->cursor++;
+      while (this->stream[this->cursor] != '\n' &&
+             this->stream[this->cursor] != '\0')
         this->cursor++;
+
       if (docs) {
         start += 2; /* ignore the #' at the begining */
         this->output.push_back(

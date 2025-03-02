@@ -32,6 +32,7 @@ private:
 private:
   std::vector<AST_Parameter *> function_parameters();
   std::vector<AST_Node *> call_arguments();
+  void skip_to_endof_statement();
   AST_Block *block();
 
   AST_Node *primary();
@@ -47,8 +48,9 @@ private:
   AST_Node *expression(); // top-level
 
 private:
-  AST_Node *binding();
-  AST_Node *statement(); // top-level
+  AST_Node *initialized_binding(Token &token, bool mut);
+  AST_Node *end_statement(AST_Node *stmt); // wrapper
+  AST_Node *statement();                   // top-level
 };
 
 #endif
