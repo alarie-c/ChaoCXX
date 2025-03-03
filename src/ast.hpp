@@ -187,15 +187,15 @@ struct AST_Binding : public AST_Node {
   void print(int indent) const override;
 };
 
-// struct AST_If_Stmt : public AST_Node {
-//   AST_Node *condition;
-//   AST_Node *branch_if;
-//   AST_Node *branch_else;
+struct AST_If_Stmt : public AST_Node {
+  AST_Node *condition;
+  AST_Node *branch_if;
+  std::optional<AST_Node *> branch_else;
 
-//   AST_If_Stmt(int line, int start, int stop);
-//   ~AST_If_Stmt();
-//   void print() const override;
-// };
+  AST_If_Stmt(int line, int start, int stop);
+  ~AST_If_Stmt();
+  void print(int indent) const override;
+};
 
 // struct AST_While_Loop : public AST_Node {
 //   AST_Node *condition;

@@ -165,6 +165,7 @@ std::vector<AST_Parameter *> Parser::function_parameters() {
   return params;
 }
 
+// This parsers ends when current() = RCURL
 AST_Block *Parser::block() {
   Token &tk = this->current();
   int line = tk.y;
@@ -565,6 +566,99 @@ void Parser::skip_to_endof_statement() {
   }
 }
 
+AST_Node *Parser::if_stmt(Token &token) {
+  this->pos++; // consume IF
+  int line = token.y;
+  int start = token.x;
+  int stop = token.x + token.lexeme.length() - 1;
+  AST_If_Stmt *node = new AST_If_Stmt(line, start, stop);
+
+  // Get the condition
+  // Also, allow this to be a nullptr if neccesary, we still want to parse the body
+  AST_Node *condition = this->expression();
+
+  // Skip to the LCURL
+  while (true) {
+    if (this->current().type == Token::Type::LCURL)
+      break;
+    else if (this->current().type == Token::Type::END_OF_FILE) {
+      Token &tk = this->current();
+      int line = tk.y;
+      int start = tk.x;
+      int stop = tk.x + tk.lexeme.length() - 1;
+      this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "Expected a '{' after an if-statement condition");
+      return nullptr;
+    }
+    else
+      this->pos++;
+  }
+  this->pos++;
+
+  // Take the if-branch
+  AST_Node *branch_if = this->block();
+  std::optional<AST_Node *> branch_else = std::nullopt;
+
+  std::cout << "After true branch: " << this->current().lexeme << std::endl;
+
+  if (this->current().type != Token::Type::RCURL) {
+    Token &tk = this->current();
+    int line = tk.y;
+    int start = tk.x;
+    int stop = tk.x + tk.lexeme.length() - 1;
+
+    // If this breaks then throw a tantrum and do absolutely nothing to fix it so we can return the rest of this crap
+    this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "Expected a '}' to close the previous block");
+  }
+
+  if (this->peek_consume_if(Token::Type::ELSE)) {
+    this->pos++;    
+    Token &tk = this->current();
+    
+    if (tk.type == Token::Type::IF) {
+      // This is for an else if block
+      this->pos++; // consume the IF
+      branch_else = this->if_stmt(tk);
+    } else {
+      // Skip to the LCURL
+      while (true) {
+        if (this->current().type == Token::Type::LCURL)
+          break;
+        else if (this->current().type == Token::Type::END_OF_FILE) {
+          Token &tk = this->current();
+          int line = tk.y;
+          int start = tk.x;
+          int stop = tk.x + tk.lexeme.length() - 1;
+          this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "Expected a '{' after an if-statement condition");
+          return nullptr;
+        }
+        else
+          this->pos++;
+      }
+      this->pos++;
+
+      // There should be a else branch
+      branch_else = this->block();
+
+      std::cout << "after else branch: " << this->current().lexeme << std::endl;
+      
+      // Same thing about the errors
+      if (this->current().type != Token::Type::RCURL) {
+        Token &tk = this->current();
+        int line = tk.y;
+        int start = tk.x;
+        int stop = tk.x + tk.lexeme.length() - 1;
+        this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "Expected a '}' to close the previous block");
+      }
+    }
+  }
+  std::cout << "before return: " << this->current().lexeme << std::endl;
+  this->pos++; // consume }
+  node->condition = condition;
+  node->branch_if = branch_if;
+  node->branch_else = branch_else;
+  return node;
+}
+
 AST_Node *Parser::initialized_binding(Token &token, bool mut) {
   this->pos++; // consume =
   int line = token.y;
@@ -635,6 +729,9 @@ AST_Node *Parser::statement() {
     this->pos++;
     return nullptr;
   }
+
+  case Token::Type::IF:
+    return this->end_statement(this->if_stmt(tk));
   }
 
   AST_Node *expr = this->expression();

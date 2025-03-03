@@ -1,5 +1,13 @@
-main = function() {
-    mut a = 20
-    a -> 30
-    call(nested_call())
+if X > 5 {
+    mut A = 600
+    
+} else if Y > 10 {
+    mut B = "Other"
+
+} else {
+    D = function() {
+        Z = "hello"
+    }
+    
+    mut C = 0
 }

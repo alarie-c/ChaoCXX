@@ -50,6 +50,7 @@ private:
   AST_Node *expression(); // top-level
 
 private:
+  AST_Node *if_stmt(Token &token);
   AST_Node *initialized_binding(Token &token, bool mut);
   AST_Node *end_statement(AST_Node *stmt); // wrapper
   AST_Node *statement();                   // top-level

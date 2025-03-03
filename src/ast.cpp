@@ -167,6 +167,15 @@ AST_Grouping::AST_Grouping(AST_Node *inner, int line, int start, int stop)
 
 AST_Grouping::~AST_Grouping() { delete this->inner; }
 
+AST_If_Stmt::AST_If_Stmt(int line, int start, int stop) : AST_Node(line, start, stop) {}
+
+AST_If_Stmt::~AST_If_Stmt() {
+  delete this->condition;
+  delete this->branch_if;
+  if (this->branch_else)
+    delete this->branch_else.value();
+}
+
 // =================================================================
 // AST NODE PRINT OVERRIDES
 // =================================================================
@@ -299,6 +308,25 @@ void AST_Binding::print(int indent) const {
     std::cout << spaces << "  </Initializer>\n";
   }
   std::cout << spaces << "</Binding>" << std::endl;
+}
+
+void AST_If_Stmt::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<If>\n";
+  std::cout << spaces << "  <Condition>\n";
+  this->condition->print(indent + 4);
+  std::cout << spaces << "  </Condition>\n";
+
+  std::cout << spaces << "  <True Branch>\n";
+  this->branch_if->print(indent + 4);
+  std::cout << spaces << "  </True Branch>\n";
+
+  if (this->branch_else) {
+    std::cout << spaces << "  <Else Branch>\n";
+    this->branch_else.value()->print(indent + 4);
+    std::cout << spaces << "  </Else Branch>\n";
+  }
+  std::cout << spaces << "</If>\n";
 }
 
 // =================================================================
