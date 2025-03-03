@@ -177,93 +177,134 @@ AST_Grouping::~AST_Grouping() { delete this->inner; }
 // AST NODE PRINT OVERRIDES
 // =================================================================
 
-void AST_Assignment::print() const {
-  std::cout << "{ Assignment\n";
-  this->assignee->print();
-  std::cout << this->op << "\n";
-  this->value->print();
-  std::cout << "\n}" << std::endl;
+void AST_Assignment::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Assignment>\n";
+  this->assignee->print(indent + 2);
+  std::cout << spaces << "  <Op> " << this->op << " </Op>\n";
+  this->value->print(indent + 2);
+  std::cout << spaces << "</Assignment>" << std::endl;
 }
 
-void AST_String::print() const {
-  std::cout << "String: " << this->value << std::endl;
+void AST_String::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<String> " << this->value << " </String>" << std::endl;
 }
 
-void AST_Integer::print() const {
-  std::cout << "Integer: " << this->value << std::endl;
+void AST_Integer::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Integer> " << this->value << " </Integer>" << std::endl;
 }
 
-void AST_Symbol::print() const {
-  std::cout << "Symbol: " << this->name << std::endl;
+void AST_Symbol::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Symbol> " << this->name << " </Symbol>" << std::endl;
 }
 
-void AST_Binary::print() const {
-  std::cout << "{ Binary\n";
-  this->left->print();
-  std::cout << this->op << "\n";
-  this->right->print();
-  std::cout << "}" << std::endl;
+void AST_Binary::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Binary>\n";
+  this->left->print(indent + 2);
+  std::cout << spaces << "  <Op> " << this->op << " </Op>\n";
+  this->right->print(indent + 2);
+  std::cout << spaces << "</Binary>" << std::endl;
 }
 
-void AST_Logical::print() const {
-  std::cout << "{ Logical\n";
-  this->left->print();
-  std::cout << this->op << "\n";
-  this->right->print();
-  std::cout << "}" << std::endl;
+void AST_Logical::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Logical>\n";
+  this->left->print(indent + 2);
+  std::cout << spaces << "  <Op> " << this->op << " </Op>\n";
+  this->right->print(indent + 2);
+  std::cout << spaces << "</Logical>" << std::endl;
 }
 
-void AST_Unary::print() const {
-  std::cout << "{ Unary\n";
-  std::cout << this->op << "\n";
-  this->operand->print();
-  std::cout << "}" << std::endl;
+void AST_Unary::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Unary>\n";
+  this->operand->print(indent + 2);
+  std::cout << spaces << "  <Op> " << this->op << " </Op>\n";
+  std::cout << spaces << "</Unary>" << std::endl;
 }
 
-void AST_Call::print() const {
-  std::cout << "{ Call\n";
-  this->callee->print();
-  for (const AST_Node *node : this->args)
-    node->print();
-  std::cout << "}" << std::endl;
+void AST_Call::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Call>\n";
+  this->callee->print(indent + 2);
+  
+  std::cout << spaces << "  <Args>\n";
+  for (AST_Node *a : this->args) {
+    a->print(indent + 4);
+  }
+  std::cout << spaces << "  </Args>\n";
+
+  std::cout << spaces << "</Call>" << std::endl;
 }
 
-void AST_Function::print() const {
-  std::cout << "{ Function\n";
-  for (const AST_Node *node : this->params)
-    node->print();
-  if (this->return_type)
-    this->return_type.value()->print();
-  this->body->print();
-  std::cout << "}" << std::endl;
+void AST_Function::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Function>\n";
+  
+  std::cout << spaces << "  <Params>\n";
+  for (AST_Node *p : this->params) {
+    p->print(indent + 4);
+  }
+  std::cout << spaces << "  </Params>\n";
+
+  if (this->return_type) {
+    std::cout << spaces << "  <Return Type>\n";
+    this->return_type.value()->print(indent + 4);
+    std::cout << spaces << "  </Return Type>\n";
+  }
+
+  std::cout << spaces << "  <Body>\n";
+  this->body->print(indent + 4);
+  std::cout << spaces << "  </Body>" << std::endl;
 }
 
-void AST_Grouping::print() const {
-  std::cout << "{ Grouping\n";
-  this->inner->print();
-  std::cout << "}" << std::endl;
+void AST_Grouping::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Grouping>\n";
+  this->inner->print(indent + 2);
+  std::cout << spaces << "</Grouping>" << std::endl;
 }
 
-void AST_Parameter::print() const {
-  std::cout << "{ Parameter\n" << this->name;
-  this->type->print();
-  if (this->initializer)
-    this->initializer.value()->print();
-  std::cout << "}" << std::endl;
+void AST_Parameter::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Parameter>\n";
+  this->type->print(indent + 2);
+
+  if (this->initializer) {
+    std::cout << spaces << "  <Initializer>\n";
+    this->initializer.value()->print(indent + 4);
+    std::cout << spaces << "  </Initializer>";
+  }
+
+  std::cout << spaces << "</Parameter>" << std::endl;
 }
 
-void AST_Block::print() const {
-  std::cout << "{ Block\n";
-  for (const AST_Node *node : this->nodes)
-    node->print();
-  std::cout << "}" << std::endl;
+void AST_Block::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Block>\n";
+
+  for (AST_Node *n : this->nodes)
+    n->print(indent + 2);
+  
+  std::cout << spaces << "</Block>" << std::endl;
 }
 
-void AST_Binding::print() const {
-  std::cout << "{ Variable Decl\n";
-  std::cout << this->symbol << "\n" << this->mut << "\n";
-  if (this->initializer)
-    this->initializer.value()->print();
+void AST_Binding::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+
+  std::cout << spaces << "<Binding>\n";
+  std::cout << spaces << "  <Name> " << this->symbol << " </Name>\n";
+  std::cout << spaces << "  <Mutable?> " << this->mut << " </Mutable?>\n";
+  if (this->initializer) {
+    std::cout << spaces << "  <Initializer>\n";
+    this->initializer.value()->print(indent + 4);
+    std::cout << spaces << "  </Initializer>\n";
+  }
+  std::cout << spaces << "</Binding>" << std::endl;
 }
 
 // =================================================================
@@ -279,7 +320,7 @@ Parse_Tree::~Parse_Tree() {
 
 void Parse_Tree::allocate(AST_Node *node) { this->nodes.push_back(node); }
 
-void Parse_Tree::print_all() {
+void Parse_Tree::print() {
   for (AST_Node *node : this->nodes)
-    node->print();
+    node->print(0);
 }

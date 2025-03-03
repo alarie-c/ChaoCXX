@@ -68,7 +68,7 @@ int main() {
   //Parse_Tree parse_tree = make_parse_tree(tokens, reporter);
   Parser parser = Parser(tokens, reporter);
   parser.parse();
-  parser.tree.print_all();
+  parser.tree.print();
 
   reporter->print_errors();
 

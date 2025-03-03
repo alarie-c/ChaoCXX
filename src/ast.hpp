@@ -48,7 +48,7 @@ struct AST_Node {
 
   AST_Node(int line, int start, int stop);
   virtual ~AST_Node() = default;
-  virtual void print() const = 0;
+  virtual void print(int indent) const = 0;
 };
 
 // Represents the assignment of one thing to a new value
@@ -60,7 +60,7 @@ struct AST_Assignment : public AST_Node {
 
   AST_Assignment(AST_Op op, int line, int start, int stop);
   ~AST_Assignment();
-  void print() const override;
+  void print(int indent) const override;
 };
 
 // Represents a basic string literal
@@ -69,7 +69,7 @@ struct AST_String : public AST_Node {
   std::string value;
 
   AST_String(std::string value, int line, int start, int stop);
-  void print() const override;
+  void print(int indent) const override;
 };
 
 // Represents an integer literal
@@ -77,7 +77,7 @@ struct AST_String : public AST_Node {
 struct AST_Integer : public AST_Node {
   long long int value;
   AST_Integer(long long int value, int line, int start, int stop);
-  void print() const override;
+  void print(int indent) const override;
 };
 
 // Represents any symbol literal
@@ -85,7 +85,7 @@ struct AST_Integer : public AST_Node {
 struct AST_Symbol : public AST_Node {
   std::string name;
   AST_Symbol(std::string name, int line, int start, int stop);
-  void print() const override;
+  void print(int indent) const override;
 };
 
 // Represents a binary expression with an infix operator
@@ -99,7 +99,7 @@ struct AST_Binary : public AST_Node {
   // Thusly, `left` and `right` are both `nullptr`
   AST_Binary(AST_Op op, int line, int start, int stop);
   ~AST_Binary();
-  void print() const override;
+  void print(int indent) const override;
 };
 
 // Represents a logical expression with an infix logical operator
@@ -113,7 +113,7 @@ struct AST_Logical : public AST_Node {
   // Thusly, `left` and `right` are both `nullptr`
   AST_Logical(AST_Op op, int line, int start, int stop);
   ~AST_Logical();
-  void print() const override;
+  void print(int indent) const override;
 };
 
 struct AST_Unary : public AST_Node {
@@ -122,7 +122,7 @@ struct AST_Unary : public AST_Node {
 
   AST_Unary(AST_Op op, int line, int start, int stop);
   ~AST_Unary();
-  void print() const override;
+  void print(int indent) const override;
 };
 
 struct AST_Call : public AST_Node {
@@ -132,7 +132,7 @@ struct AST_Call : public AST_Node {
   // `args` is an empty vector upon creation
   AST_Call(AST_Node *callee, int line, int start, int stop);
   ~AST_Call();
-  void print() const override;
+  void print(int indent) const override;
 };
 
 struct AST_Parameter : public AST_Node {
@@ -142,7 +142,7 @@ struct AST_Parameter : public AST_Node {
 
   AST_Parameter(std::string name, int line, int start, int stop);
   ~AST_Parameter();
-  void print() const override;
+  void print(int indent) const override;
 };
 
 // Represents a function declaration
@@ -155,7 +155,7 @@ struct AST_Function : public AST_Node {
   // creation
   AST_Function(int line, int start, int stop);
   ~AST_Function();
-  void print() const override;
+  void print(int indent) const override;
 };
 
 // Represents any basic type of grouping expression
@@ -165,7 +165,7 @@ struct AST_Grouping : public AST_Node {
 
   AST_Grouping(AST_Node *inner, int line, int start, int stop);
   ~AST_Grouping();
-  void print() const override;
+  void print(int indent) const override;
 };
 
 struct AST_Block : public AST_Node {
@@ -174,7 +174,7 @@ struct AST_Block : public AST_Node {
   AST_Block(int line, int start, int stop);
   ~AST_Block();
   void append(AST_Node *node);
-  void print() const override;
+  void print(int indent) const override;
 };
 
 struct AST_Binding : public AST_Node {
@@ -184,7 +184,7 @@ struct AST_Binding : public AST_Node {
 
   AST_Binding(bool mut, std::string symbol, int line, int start, int stop);
   ~AST_Binding();
-  void print() const override;
+  void print(int indent) const override;
 };
 
 // struct AST_If_Stmt : public AST_Node {
@@ -211,7 +211,7 @@ class Parse_Tree {
 
 public:
   void allocate(AST_Node *node);
-  void print_all();
+  void print();
 
   Parse_Tree();
   ~Parse_Tree();
