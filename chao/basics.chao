@@ -1,0 +1,64 @@
+# Import specific items from modules
+from module import item1, item2
+
+# Import entire modules
+import module
+import module as mod
+
+# Import everything from a module
+from module import *
+#                  ^ wildcard operator
+
+# Create global bindings
+my_global_constant = 500_300
+mut some_state_thing = 0
+
+# (note) The Chao compiler will convert any const into a compile-time constant if the value is known at compilation time
+
+# This is a compile-time constant
+my_compiletime_const = 25
+
+# This is NOT a compile-time constant, assuming "some_procedure" is a procedure that does not return a constant
+my_other_const = some_procedure();
+
+# Cases where this might be different:
+const_proc = function() { return 0 }
+my_const = const_proc()
+#          ^^^^^^^^^^ returns a constant value
+# Will still be a compile time const because the return value of "const_proc" is known at compile time
+
+# Main function (entry-point)
+# All Chao projects have to have an entrypoint, which is specified as the "main" function in in the main.chao file
+main = function() {}
+
+# This function most comply with a few rules
+# 1. It cannot return a value (besides int for error code)
+# 2. It must exist inside the main.chao file and the project should be built and ran from the parent directory of main.chao
+
+# You can specify a different entrypoint using the #[entry] attribute
+
+#[entry]
+my_custom_entry = function() {}
+
+# When running this, you can specify that there is a non-main entrypoint. If you don't it will still run, but adding "--nomain" to the run or build command will tell the compiler to immediately look for the #[entry] attribute instead of scanning for the `main` function.
+
+# (note) a Chao project can only have one entrypoint
+
+# Now for some variations on the entrypoint function
+
+# (standard)
+main = function()
+
+# (args-capture entry)
+main = function(*args, **kwargs)
+
+# (exit-code entry)
+main = function(): int 
+
+# (args-capture + exit-code entry)
+main = function(*args, **kwargs): int 
+
+# (no-main entry with these variations)
+
+#[entry]
+custom = function(*args, **kwargs): int 

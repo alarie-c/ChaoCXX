@@ -76,10 +76,8 @@ AST_Assignment::AST_Assignment(AST_Op op, int line, int start, int stop)
     : AST_Node(line, start, stop), op(op) {}
 
 AST_Assignment::~AST_Assignment() {
-  if (this->value)
-    delete this->value;
-  if (this->assignee)
-    delete this->assignee;
+  delete this->value;
+  delete this->assignee;
 }
 
 AST_String::AST_String(std::string value, int line, int start, int stop)
@@ -95,20 +93,16 @@ AST_Binary::AST_Binary(AST_Op op, int line, int start, int stop)
     : AST_Node(line, start, stop), op(op) {}
 
 AST_Binary::~AST_Binary() {
-  if (this->left)
-    delete this->left;
-  if (this->right)
-    delete this->right;
+  delete this->left;
+  delete this->right;
 }
 
 AST_Logical::AST_Logical(AST_Op op, int line, int start, int stop)
     : AST_Node(line, start, stop), op(op) {}
 
 AST_Logical::~AST_Logical() {
-  if (this->left)
-    delete this->left;
-  if (this->right)
-    delete this->right;
+  delete this->left;
+  delete this->right;
 }
 
 AST_Unary::AST_Unary(AST_Op op, int line, int start, int stop)
