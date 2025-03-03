@@ -92,6 +92,8 @@ struct Token {
     FROM,
     IMPORT,
     AS,
+    IS,
+    NOT,
   };
 
   Type type;

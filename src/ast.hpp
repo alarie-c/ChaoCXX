@@ -34,7 +34,9 @@ enum AST_Op {
   COMP_LESS,
   COMP_LESS_EQUAL,
   COMP_MORE,
-  COMP_MORE_EQUAL
+  COMP_MORE_EQUAL,
+  COMP_IS,
+  COMP_NOT,
 };
 
 // Utility functions for AST_Op

@@ -32,7 +32,8 @@ std::map<Token::Type, AST_Op> operators = {
     {Token::Type::LESS_EQUAL, AST_Op::COMP_LESS_EQUAL},
     {Token::Type::MORE, AST_Op::COMP_MORE},
     {Token::Type::MORE_EQUAL, AST_Op::COMP_MORE_EQUAL},
-
+    {Token::Type::IS, AST_Op::COMP_IS},
+    {Token::Type::NOT, AST_Op::COMP_NOT},
 };
 
 std::ostream &operator<<(std::ostream &os, const AST_Op &ast_op) {
@@ -60,6 +61,8 @@ std::ostream &operator<<(std::ostream &os, const AST_Op &ast_op) {
       {AST_Op::COMP_LESS_EQUAL, "<="},
       {AST_Op::COMP_MORE, ">"},
       {AST_Op::COMP_MORE_EQUAL, ">="},
+      {AST_Op::COMP_IS, "IS"},
+      {AST_Op::COMP_NOT, "NOT"},
   };
   os << op_string[ast_op];
   return os;

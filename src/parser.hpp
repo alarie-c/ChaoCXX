@@ -43,6 +43,7 @@ private:
   AST_Node *unary();
   AST_Node *factor();
   AST_Node *term();
+  AST_Node *equality();
   AST_Node *comparison();
   AST_Node *logical_and();
   AST_Node *logical_or();

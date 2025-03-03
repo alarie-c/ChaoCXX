@@ -92,6 +92,9 @@ std::ostream &operator<<(std::ostream &os, const Token::Type &type) {
       {Token::Type::FROM, "FROM"},
       {Token::Type::IMPORT, "IMPORT"},
       {Token::Type::AS, "AS"},
+      {Token::Type::IS, "IS"},
+      {Token::Type::NOT, "NOT"},
+
   };
   os << types[type];
   return os;
@@ -119,4 +122,6 @@ std::map<std::string, Token::Type> keywords = {
     {"from", Token::Type::FROM},
     {"import", Token::Type::IMPORT},
     {"as", Token::Type::AS},
+    {"is", Token::Type::IS},
+    {"not", Token::Type::NOT},
 };

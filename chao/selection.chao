@@ -1,0 +1,91 @@
+# There are three methods to selection in Chao
+# 1. Blocked if-else
+# 2. Non-blocked if-else
+# 3. Ternary operator
+
+# Blocked if-else is the most versatile and common
+# It follows the pattern (IF) (CONDITION) (BLOCK EXPR)
+
+if x == 0 {
+  print("x is zero")
+}
+
+# The else branch is option for these
+
+if x == 0 {
+  print("x is zero")
+} else {
+  print("x isn't zero")
+}
+
+# You can use the (ELSE) (IF) (CONDITION) (BLOCK EXPR) pattern for larger statements
+
+if x == 0 {
+  print("x is zero")
+} else if x == 1 {
+  print("x is one")
+} else {
+  print("x is something else")
+}
+
+# (note) Due to the way these statements are parsed, the above code is equivalent to:
+
+if x == 0 {
+  print("x is zero")
+} else {
+    if x == 1 {
+        print("x is one")
+    } else {
+        print("x is something else")
+    }
+}
+
+# The other method of selection is with a single statement following the condition,
+# which follows this pattern: (IF) (CONDITION) (STATEMENT)
+
+# (note) Newlines and tabs to not contribute to the statement, so you can format this however you want:
+
+if x == 0
+  print("x is zero")
+# ^^^^^^^^^^^^^^^^^^^^ all one statement
+
+if x == 0 print("x is zero")
+# ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ also all one statement
+
+# You can make this simpler by imagining a semicolon at the end of this
+
+if x == 0 print("x is zero");
+
+# or..
+
+if x == 0
+  print("x is zero");
+print("I don't care what x is..");
+
+# (note) This is a little dangerous, understand that the pattern must be followed exactly--it will use one statement and one statement only after the condition
+
+# The final way is to use the ternary operator. This follows the same way it's used in C++ and other languages.
+
+# (IF) (CONDITION) (?) (TRUE EXPR) : (FALSE EXPR)
+
+if x == 0 ? print("x is zero") : print("x is not zero")
+
+# (note) The items in each branch of the ternary must be expressions, not statements.
+
+if x == 0 ? mut a = 30 : mut b = 25
+#           ^^^^^^^^^^   ^^^^^^^^^^ neither of these are allowed
+
+# If you want to assign variables with selection, you can use the if/else for that
+
+(MUT?) (SYMBOL) = (TRUE EXPR) (IF) (CONDITION) (ELSE) (FALSE EXPR)
+
+mut a = "x is zero" if x == 0 else "x isn't zero"
+
+# (note) You also cannot use blocks here, if you want to have more functionality from a single one of these expressions, use an anonymous function expression.
+
+mut a = "x is zero" if x == 0 else
+  function() {
+#           ^ return type is inferred in anonymous functions
+    some_function(x)
+    return "x isn't zero"
+  }()

@@ -173,6 +173,10 @@ void Lexer::scan() {
       this->output.push_back(
           Token(Token::Type::ATSIGN, LEXEME_SV, this->line, start));
       break;
+    case '%':
+      this->output.push_back(
+          Token(Token::Type::MODULO, LEXEME_SV, this->line, start));
+      break; 
 
     // Handle comments
     case '#': {

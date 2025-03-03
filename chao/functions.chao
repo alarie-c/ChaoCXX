@@ -1,0 +1,38 @@
+# In Chao, all functions are expressions, and all functions are anonymous unless they get assigned to a symbol. In other words, all functions are R-values
+
+function () {}
+
+# That entire line is computationally equivalent to just writing 5, it's a r-value that ceases to exist immediately unless you assign it to something
+
+# Assign functions mutably or immutably
+
+add = function(x: int, y: int): int {
+  return x + y
+}
+
+print(add(5, 10)) #$ 15
+
+mut sub = function(x: int, y: int): int {
+  return x - y
+}
+
+print(sub(5, 10)) #$ -5
+
+sub -> function(x: int, y: int): int {
+  return y - x
+}
+
+print(sub(5, 10)) #$ 5
+
+# (note) Functions are only required to have a return type specified when being assigned, anaonymous functions will have their return type inferred.
+
+# Anonymous function and call
+
+result = function(x: int, y: int) {
+  print(x + y)
+  return x + y
+}(5, 10)
+
+# Creates an r-value function expression that takes two integer parameters, prints them to the console, and then returns the result of them added together
+# Then, we immediately perform a function call on that anonymous function and pass in the arguments 5 and 10.
+# This will end up with "result" being an constant integer binding with the value 15, and simultaneously we will print "15" to the console.

@@ -401,7 +401,7 @@ AST_Node *Parser::factor() {
   AST_Node *expr = this->unary();
 
   if (this->peek_consume_if(
-          std::vector{Token::Type::SLASH, Token::Type::STAR})) {
+          std::vector{Token::Type::SLASH, Token::Type::STAR, Token::Type::MODULO})) {
     Token &tk = this->current();
     int line = tk.y;
     int start = tk.x;
@@ -441,8 +441,31 @@ AST_Node *Parser::term() {
   return expr;
 }
 
-AST_Node *Parser::comparison() {
+AST_Node *Parser::equality() {
   AST_Node *expr = this->term();
+
+  while (this->peek_consume_if(
+      std::vector{Token::Type::EQUAL_EQUAL, Token::Type::BANG_EQUAL, Token::Type::IS,
+                  Token::Type::NOT})) {
+    Token &tk = this->current();
+    int line = tk.y;
+    int start = tk.x;
+    int stop = tk.x + tk.lexeme.length() - 1;
+    AST_Op op = *(operator_from_token(tk));
+    AST_Binary *n = new AST_Binary(op, line, start, stop);
+
+    // Get the right node
+    this->pos++;
+    AST_Node *right = this->term();
+    n->right = right;
+    n->left = expr;
+    return n;
+  }
+  return expr;
+}
+
+AST_Node *Parser::comparison() {
+  AST_Node *expr = this->equality();
 
   while (this->peek_consume_if(
       std::vector{Token::Type::LESS, Token::Type::LESS_EQUAL, Token::Type::MORE,
