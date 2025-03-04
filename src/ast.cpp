@@ -156,6 +156,15 @@ AST_Block::~AST_Block() {
 
 void AST_Block::append(AST_Node *node) { this->nodes.push_back(node); }
 
+AST_Array_Literal::AST_Array_Literal(int line, int start, int stop)
+    : AST_Node(line, start, stop) {}
+
+AST_Array_Literal::~AST_Array_Literal() {
+  for (AST_Node *item : this->elems)
+    delete item;
+  this->elems.clear();
+}
+
 AST_Binding::AST_Binding(bool mut, std::string symbol, int line, int start,
                          int stop)
     : AST_Node(line, start, stop), mut(mut), symbol(symbol) {}
@@ -170,7 +179,8 @@ AST_Grouping::AST_Grouping(AST_Node *inner, int line, int start, int stop)
 
 AST_Grouping::~AST_Grouping() { delete this->inner; }
 
-AST_If_Stmt::AST_If_Stmt(int line, int start, int stop) : AST_Node(line, start, stop) {}
+AST_If_Stmt::AST_If_Stmt(int line, int start, int stop)
+    : AST_Node(line, start, stop) {}
 
 AST_If_Stmt::~AST_If_Stmt() {
   delete this->condition;
@@ -194,12 +204,14 @@ void AST_Assignment::print(int indent) const {
 
 void AST_String::print(int indent) const {
   std::string spaces = std::string(indent, ' ');
-  std::cout << spaces << "<String> " << this->value << " </String>" << std::endl;
+  std::cout << spaces << "<String> " << this->value << " </String>"
+            << std::endl;
 }
 
 void AST_Integer::print(int indent) const {
   std::string spaces = std::string(indent, ' ');
-  std::cout << spaces << "<Integer> " << this->value << " </Integer>" << std::endl;
+  std::cout << spaces << "<Integer> " << this->value << " </Integer>"
+            << std::endl;
 }
 
 void AST_Symbol::print(int indent) const {
@@ -237,7 +249,7 @@ void AST_Call::print(int indent) const {
   std::string spaces = std::string(indent, ' ');
   std::cout << spaces << "<Call>\n";
   this->callee->print(indent + 2);
-  
+
   std::cout << spaces << "  <Args>\n";
   for (AST_Node *a : this->args) {
     a->print(indent + 4);
@@ -250,7 +262,7 @@ void AST_Call::print(int indent) const {
 void AST_Function::print(int indent) const {
   std::string spaces = std::string(indent, ' ');
   std::cout << spaces << "<Function>\n";
-  
+
   std::cout << spaces << "  <Params>\n";
   for (AST_Node *p : this->params) {
     p->print(indent + 4);
@@ -295,8 +307,33 @@ void AST_Block::print(int indent) const {
 
   for (AST_Node *n : this->nodes)
     n->print(indent + 2);
-  
+
   std::cout << spaces << "</Block>" << std::endl;
+}
+
+void AST_Array_Literal::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Array>\n";
+
+  for (AST_Node *i : this->elems)
+    i->print(indent + 2);
+
+  std::cout << spaces << "</Array>" << std::endl;
+}
+
+template <size_t n_cols, size_t n_rows>
+void AST_Matrix_Literal<n_cols, n_rows>::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Matrix>\n";
+
+  for (AST_Matrix_Literal::Row row : this->rows) {
+    std::cout << spaces << "  <Row>\n";
+    for (AST_Node *n : row)
+      n->print(indent + 4);
+    std::cout << spaces << "  </Row>\n";
+  }
+
+  std::cout << spaces << "</Matrix>" << std::endl;
 }
 
 void AST_Binding::print(int indent) const {

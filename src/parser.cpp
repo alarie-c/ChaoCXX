@@ -2,6 +2,7 @@
 #include "ast.hpp"
 #include "errors.hpp"
 #include "token.hpp"
+#include <array>
 #include <iostream>
 #include <optional>
 #include <vector>
@@ -66,6 +67,18 @@ bool Parser::peek_consume_if(Token::Type assert_type) {
   if (tk.type == assert_type) {
     this->pos++;
     return true;
+  }
+  return false;
+}
+
+bool Parser::peek_consume_if_ignore_newlines(Token::Type assert_type) {
+  Token &tk = this->peek();
+  if (tk.type == assert_type) {
+    this->pos++;
+    return true;
+  } else if (tk.type == Token::Type::NEWLINE) {
+    this->pos++;
+    return this->peek_consume_if_ignore_newlines(assert_type);
   }
   return false;
 }
@@ -263,6 +276,57 @@ std::vector<AST_Node *> Parser::call_arguments() {
   return args;
 }
 
+AST_Node *Parser::array_literal(Token &tk) {
+  int line = tk.y;
+  int start = tk.x;
+  int stop = tk.x + tk.lexeme.length() - 1;
+
+  this->pos++; // consume [
+
+  std::vector<AST_Node *> elems;
+  while (this->current().type != Token::Type::RBRAC) {
+    if (this->current().type == Token::Type::SEMICOLON) {
+      // indicates the matrix case
+      std::vector<std::vector<AST_Node *>> rows;
+    }
+
+    AST_Node *expr = this->expression();
+    if (expr == nullptr) {
+      tk = this->current();
+      line = tk.y;
+      start = tk.x;
+      stop = tk.x + tk.lexeme.length() - 1;
+
+      this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop,
+                                Error::Flag::ABORT,
+                                "Invalid expression in array literal");
+    } else
+      elems.push_back(expr);
+
+    if (this->peek_consume_if_ignore_newlines(Token::Type::COMMA)) {
+      this->pos++;
+      continue;
+    } else if (this->peek_consume_if_ignore_newlines(Token::Type::RBRAC)) {
+      break;
+    } else {
+      tk = this->current();
+      line = tk.y;
+      start = tk.x;
+      stop = tk.x + tk.lexeme.length() - 1;
+
+      this->reporter->new_error(
+          Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT,
+          "Expected a ',' to continue the array literal, or a ']' to close it");
+      break;
+    }
+  }
+
+  // current = RBRAC
+  AST_Array_Literal *node = new AST_Array_Literal(line, start, stop);
+  node->elems = elems;
+  return node;
+}
+
 // ---------------------------------------------------------------------
 // EXPRESSION PARSERS
 // ---------------------------------------------------------------------
@@ -292,6 +356,8 @@ AST_Node *Parser::primary() {
     AST_Node *n = new AST_Integer(value, line, start, stop);
     return n;
   }
+  case Token::Type::LBRAC:
+    return this->array_literal(tk);
   default: {
     this->reporter->new_error(Error::Type::EXPECTED_EXPRESSION, line, start,
                               stop, Error::Flag::ABORT,
@@ -400,8 +466,8 @@ AST_Node *Parser::unary() {
 AST_Node *Parser::factor() {
   AST_Node *expr = this->unary();
 
-  if (this->peek_consume_if(
-          std::vector{Token::Type::SLASH, Token::Type::STAR, Token::Type::MODULO})) {
+  if (this->peek_consume_if(std::vector{Token::Type::SLASH, Token::Type::STAR,
+                                        Token::Type::MODULO})) {
     Token &tk = this->current();
     int line = tk.y;
     int start = tk.x;
@@ -445,8 +511,8 @@ AST_Node *Parser::equality() {
   AST_Node *expr = this->term();
 
   while (this->peek_consume_if(
-      std::vector{Token::Type::EQUAL_EQUAL, Token::Type::BANG_EQUAL, Token::Type::IS,
-                  Token::Type::NOT})) {
+      std::vector{Token::Type::EQUAL_EQUAL, Token::Type::BANG_EQUAL,
+                  Token::Type::IS, Token::Type::NOT})) {
     Token &tk = this->current();
     int line = tk.y;
     int start = tk.x;
@@ -597,7 +663,8 @@ AST_Node *Parser::if_stmt(Token &token) {
   AST_If_Stmt *node = new AST_If_Stmt(line, start, stop);
 
   // Get the condition
-  // Also, allow this to be a nullptr if neccesary, we still want to parse the body
+  // Also, allow this to be a nullptr if neccesary, we still want to parse the
+  // body
   AST_Node *condition = this->expression();
 
   // Skip to the LCURL
@@ -609,10 +676,11 @@ AST_Node *Parser::if_stmt(Token &token) {
       int line = tk.y;
       int start = tk.x;
       int stop = tk.x + tk.lexeme.length() - 1;
-      this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "Expected a '{' after an if-statement condition");
+      this->reporter->new_error(
+          Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT,
+          "Expected a '{' after an if-statement condition");
       return nullptr;
-    }
-    else
+    } else
       this->pos++;
   }
   this->pos++;
@@ -629,14 +697,17 @@ AST_Node *Parser::if_stmt(Token &token) {
     int start = tk.x;
     int stop = tk.x + tk.lexeme.length() - 1;
 
-    // If this breaks then throw a tantrum and do absolutely nothing to fix it so we can return the rest of this crap
-    this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "Expected a '}' to close the previous block");
+    // If this breaks then throw a tantrum and do absolutely nothing to fix it
+    // so we can return the rest of this crap
+    this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop,
+                              Error::Flag::ABORT,
+                              "Expected a '}' to close the previous block");
   }
 
   if (this->peek_consume_if(Token::Type::ELSE)) {
-    this->pos++;    
+    this->pos++;
     Token &tk = this->current();
-    
+
     if (tk.type == Token::Type::IF) {
       // This is for an else if block
       this->pos++; // consume the IF
@@ -651,10 +722,11 @@ AST_Node *Parser::if_stmt(Token &token) {
           int line = tk.y;
           int start = tk.x;
           int stop = tk.x + tk.lexeme.length() - 1;
-          this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "Expected a '{' after an if-statement condition");
+          this->reporter->new_error(
+              Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT,
+              "Expected a '{' after an if-statement condition");
           return nullptr;
-        }
-        else
+        } else
           this->pos++;
       }
       this->pos++;
@@ -663,14 +735,16 @@ AST_Node *Parser::if_stmt(Token &token) {
       branch_else = this->block();
 
       std::cout << "after else branch: " << this->current().lexeme << std::endl;
-      
+
       // Same thing about the errors
       if (this->current().type != Token::Type::RCURL) {
         Token &tk = this->current();
         int line = tk.y;
         int start = tk.x;
         int stop = tk.x + tk.lexeme.length() - 1;
-        this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "Expected a '}' to close the previous block");
+        this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop,
+                                  Error::Flag::ABORT,
+                                  "Expected a '}' to close the previous block");
       }
     }
   }

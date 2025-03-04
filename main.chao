@@ -1,15 +1,14 @@
-if X is Numeric {
-    print("X is Numeric")
+create_array = function() {
+    my_array = [1, 
+        2, 
+           3, 
+              4, 
+                 5
+                 
+        ]
 
-    if X == 30 {
-        print("X is 30")
-    } else {
-        print("X isn't thirty")
-    }
+    new_array = [540, 340]
+    ndarray = [[500, 300], [600, 800]]
 
-    if X % 2 != 0 {
-        print("X is not even")
-    } else {
-        print("X is even")
-    }
+    mut b = 20
 }

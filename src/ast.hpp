@@ -2,6 +2,7 @@
 #define AST_H
 
 #include "token.hpp"
+#include <array>
 #include <iostream>
 #include <optional>
 #include <string>
@@ -176,6 +177,26 @@ struct AST_Block : public AST_Node {
   AST_Block(int line, int start, int stop);
   ~AST_Block();
   void append(AST_Node *node);
+  void print(int indent) const override;
+};
+
+struct AST_Array_Literal : public AST_Node {
+  std::vector<AST_Node *> elems;
+
+  AST_Array_Literal(int line, int start, int stop);
+  ~AST_Array_Literal();
+  // void freeze(std::vector<AST_Node *> vec);
+  void print(int indent) const override;
+};
+
+template <size_t n_cols, size_t n_rows>
+struct AST_Matrix_Literal : public AST_Node {
+  typedef std::array<AST_Node *, n_rows> Row;
+
+  std::array<Row, n_cols> rows;
+
+  AST_Matrix_Literal(int line, int start, int stop);
+  ~AST_Matrix_Literal();
   void print(int indent) const override;
 };
 

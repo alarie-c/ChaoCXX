@@ -25,6 +25,7 @@ private:
 
   bool peek_consume_if(Token::Type asserted_type);
   bool peek_consume_if(std::vector<Token::Type> asserted_types);
+  bool peek_consume_if_ignore_newlines(Token::Type asserted_type);
 
   void error_here(Error::Type error_type, Error::Flag flag, AST_Node *expr,
                   std::string message);
@@ -32,6 +33,9 @@ private:
 private:
   std::vector<AST_Parameter *> function_parameters();
   std::vector<AST_Node *> call_arguments();
+  // template <size_t n_elems> AST_Array_Literal<n_elems> *array_literal();
+  AST_Node *array_literal(Token &tk);
+
   void skip_to_endof_statement();
   template <typename T> bool assert_node_type(AST_Node *node);
 

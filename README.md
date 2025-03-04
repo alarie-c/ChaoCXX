@@ -15,12 +15,12 @@ A rewrite of my Chao programming language, which was originally done in Rust, th
 - [x] Strings
 - [ ] Numbers
 - [x] Binary expressions
-- [ ] Logical expressions
+- [x] Logical expressions
 - [x] If/Else statements
 - [x] Function expressions
 - [x] Functional calls
     - [ ] Keyword arguments
-- [ ] Array declaration
+- [x] Array declaration
 - [ ] Array indexing
 - [ ] Matrix declaration
 - [ ] Matrix indexing
