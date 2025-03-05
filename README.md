@@ -17,6 +17,7 @@ A rewrite of my Chao programming language, which was originally done in Rust, th
 - [x] Binary expressions
 - [x] Logical expressions
 - [x] If/Else statements
+    - [x] If/Else without curlys
 - [x] Function expressions
 - [x] Functional calls
     - [ ] Keyword arguments

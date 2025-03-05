@@ -72,6 +72,8 @@ bool Parser::peek_consume_if(Token::Type assert_type) {
 }
 
 bool Parser::peek_consume_if_ignore_newlines(Token::Type assert_type) {
+  size_t original_pos = this->pos;
+
   Token &tk = this->peek();
   if (tk.type == assert_type) {
     this->pos++;
@@ -80,6 +82,9 @@ bool Parser::peek_consume_if_ignore_newlines(Token::Type assert_type) {
     this->pos++;
     return this->peek_consume_if_ignore_newlines(assert_type);
   }
+  // Reset the original position so that we don't consume anything unless the
+  // token as found
+  this->pos = original_pos;
   return false;
 }
 
@@ -666,90 +671,126 @@ AST_Node *Parser::if_stmt(Token &token) {
   // Also, allow this to be a nullptr if neccesary, we still want to parse the
   // body
   AST_Node *condition = this->expression();
+  AST_Node *branch_if;
 
-  // Skip to the LCURL
-  while (true) {
-    if (this->current().type == Token::Type::LCURL)
-      break;
-    else if (this->current().type == Token::Type::END_OF_FILE) {
+  if (this->peek_consume_if_ignore_newlines(Token::Type::LCURL)) {
+    // Expect a block for the branch body
+    this->pos++;
+    branch_if = this->block();
+    if (branch_if == nullptr) {
+      this->reporter->new_error(
+          Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT,
+          "The body statement for this selection statement is invalid");
+    }
+
+    // Expect the RCURL to close
+    if (this->current().type != Token::Type::RCURL) {
       Token &tk = this->current();
       int line = tk.y;
       int start = tk.x;
       int stop = tk.x + tk.lexeme.length() - 1;
-      this->reporter->new_error(
-          Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT,
-          "Expected a '{' after an if-statement condition");
-      return nullptr;
-    } else
-      this->pos++;
-  }
-  this->pos++;
 
-  // Take the if-branch
-  AST_Node *branch_if = this->block();
-  std::optional<AST_Node *> branch_else = std::nullopt;
+      // If this breaks then throw a tantrum and do absolutely nothing to fix it
+      // so we can return the rest of this crap
+      this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop,
+                                Error::Flag::ABORT,
+                                "Expected a '}' to close the previous block");
+    }
+    // this->pos++;
+    std::cout << "IF AFTER BLOCK: " << this->current().lexeme << std::endl;
 
-  std::cout << "After true branch: " << this->current().lexeme << std::endl;
-
-  if (this->current().type != Token::Type::RCURL) {
+  } else if (this->peek_consume_if_ignore_newlines(Token::Type::END_OF_FILE)) {
+    // There is an error here
     Token &tk = this->current();
     int line = tk.y;
     int start = tk.x;
     int stop = tk.x + tk.lexeme.length() - 1;
+    this->reporter->new_error(
+        Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT,
+        "There is no body statement for this selection statement");
+    return nullptr;
 
-    // If this breaks then throw a tantrum and do absolutely nothing to fix it
-    // so we can return the rest of this crap
-    this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop,
-                              Error::Flag::ABORT,
-                              "Expected a '}' to close the previous block");
-  }
-
-  if (this->peek_consume_if(Token::Type::ELSE)) {
+  } else {
+    // Expect just one statement to satisfy the body
     this->pos++;
-    Token &tk = this->current();
+    branch_if = this->statement();
+    if (branch_if == nullptr) {
+      this->reporter->new_error(
+          Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT,
+          "The body statement for this selection statement is invalid");
+    }
+    std::cout << "Current after the if branch: " << this->current().lexeme
+              << std::endl;
+  }
+  std::optional<AST_Node *> branch_else = std::nullopt;
 
-    if (tk.type == Token::Type::IF) {
+  if (this->peek_consume_if_ignore_newlines(Token::Type::ELSE)) {
+    // this->pos++;
+    Token &tk = this->current();
+    line = tk.y;
+    start = tk.x;
+    stop = tk.x + tk.lexeme.length() - 1;
+
+    if (this->peek_consume_if_ignore_newlines(Token::Type::IF)) {
       // This is for an else if block
       this->pos++; // consume the IF
       branch_else = this->if_stmt(tk);
+
     } else {
-      // Skip to the LCURL
-      while (true) {
-        if (this->current().type == Token::Type::LCURL)
-          break;
-        else if (this->current().type == Token::Type::END_OF_FILE) {
+      // This is for the else block
+      if (this->peek_consume_if_ignore_newlines(Token::Type::LCURL)) {
+        // Expect a block for the branch body
+        this->pos++;
+        branch_else = this->block();
+        if (branch_else == nullptr) {
+          this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start,
+                                    stop, Error::Flag::ABORT,
+                                    "The body statement for the else branch in "
+                                    "this selection statement is invalid");
+        }
+
+        // Expect the RCURL to close
+        if (this->current().type != Token::Type::RCURL) {
           Token &tk = this->current();
           int line = tk.y;
           int start = tk.x;
           int stop = tk.x + tk.lexeme.length() - 1;
           this->reporter->new_error(
               Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT,
-              "Expected a '{' after an if-statement condition");
-          return nullptr;
-        } else
-          this->pos++;
-      }
-      this->pos++;
+              "Expected a '}' to close the previous block");
+        }
+        this->pos++;
+        std::cout << "IF AFTER BLOCK DOS: " << this->current().lexeme
+                  << std::endl;
 
-      // There should be a else branch
-      branch_else = this->block();
-
-      std::cout << "after else branch: " << this->current().lexeme << std::endl;
-
-      // Same thing about the errors
-      if (this->current().type != Token::Type::RCURL) {
+      } else if (this->peek_consume_if_ignore_newlines(
+                     Token::Type::END_OF_FILE)) {
+        // There is an error here
         Token &tk = this->current();
         int line = tk.y;
         int start = tk.x;
         int stop = tk.x + tk.lexeme.length() - 1;
         this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop,
                                   Error::Flag::ABORT,
-                                  "Expected a '}' to close the previous block");
+                                  "There is no body statement for the else "
+                                  "branch in this selection statement");
+        return nullptr;
+
+      } else {
+        // Expect just one statement to satisfy the body
+        this->pos++;
+        branch_else = this->statement();
+        if (branch_else == nullptr) {
+          this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start,
+                                    stop, Error::Flag::ABORT,
+                                    "The body statement for the else branch in "
+                                    "this selection statement is invalid");
+        }
       }
+      this->pos++;
     }
   }
-  std::cout << "before return: " << this->current().lexeme << std::endl;
-  this->pos++; // consume }
+
   node->condition = condition;
   node->branch_if = branch_if;
   node->branch_else = branch_else;
