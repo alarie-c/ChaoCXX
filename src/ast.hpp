@@ -220,6 +220,16 @@ struct AST_If_Stmt : public AST_Node {
   void print(int indent) const override;
 };
 
+struct AST_Args : public AST_Parameter {
+  AST_Args(int line, int start, int stop);
+  void print(int indent) const override;
+};
+
+struct AST_Kwargs : public AST_Parameter {
+  AST_Kwargs(int line, int start, int stop);
+  void print(int indent) const override;
+};
+
 // struct AST_While_Loop : public AST_Node {
 //   AST_Node *condition;
 //   AST_Node *body;

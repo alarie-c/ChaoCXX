@@ -189,6 +189,12 @@ AST_If_Stmt::~AST_If_Stmt() {
     delete this->branch_else.value();
 }
 
+AST_Args::AST_Args(int line, int start, int stop)
+    : AST_Parameter("args", line, start, stop) {}
+
+AST_Kwargs::AST_Kwargs(int line, int start, int stop)
+    : AST_Parameter("kwargs", line, start, stop) {}
+
 // =================================================================
 // AST NODE PRINT OVERRIDES
 // =================================================================
@@ -290,6 +296,7 @@ void AST_Grouping::print(int indent) const {
 void AST_Parameter::print(int indent) const {
   std::string spaces = std::string(indent, ' ');
   std::cout << spaces << "<Parameter>\n";
+  std::cout << spaces << "  <Name> " << this->name << " </Name>\n";
   this->type->print(indent + 2);
 
   if (this->initializer) {
@@ -367,6 +374,16 @@ void AST_If_Stmt::print(int indent) const {
     std::cout << spaces << "  </Else Branch>\n";
   }
   std::cout << spaces << "</If>\n";
+}
+
+void AST_Args::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<*Args/>" << std::endl;
+}
+
+void AST_Kwargs::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<**Kwargs/>" << std::endl;
 }
 
 // =================================================================

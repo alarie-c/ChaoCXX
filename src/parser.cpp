@@ -136,6 +136,27 @@ std::vector<AST_Parameter *> Parser::function_parameters() {
       continue;
     }
 
+    int args = 0;
+    switch (tk.type) {
+    case Token::Type::STAR: {
+      std::cout << "STAR" << std::endl;
+      this->pos++;
+      args = 1;
+      break;
+    }
+    case Token::Type::STAR_STAR: {
+      std::cout << "STARSTAR" << std::endl;
+      this->pos++;
+      args = 2;
+      break;
+    }
+    }
+
+    tk = this->current();
+    line = tk.y;
+    start = tk.x;
+    stop = tk.x + tk.lexeme.length() - 1;
+
     if (tk.type != Token::Type::SYMBOL) {
       this->reporter->new_error(
           Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT,
@@ -146,26 +167,33 @@ std::vector<AST_Parameter *> Parser::function_parameters() {
     }
     std::string name = std::string{tk.lexeme};
 
-    if (!this->peek_consume_if(Token::Type::COLON)) {
-      this->reporter->new_error(
-          Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT,
-          "Expected type annotation after this function parameter");
-      break;
+    if (args == 0) {
+      if (!this->peek_consume_if(Token::Type::COLON)) {
+        this->reporter->new_error(
+            Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT,
+            "Expected type annotation after this function parameter");
+        break;
+      }
+
+      this->pos++;
+      AST_Node *type = this->expression();
+
+      // (todo) enforce type
+      // (todo) also enforce that it isn't nullptr
+
+      AST_Parameter *p = new AST_Parameter(name, line, start, stop);
+      p->type = type;
+
+      // (todo) look for initializer
+
+      params.push_back(p);
+    } else if (args == 1) {
+      AST_Parameter *p = new AST_Args(line, start, stop);
+      params.push_back(p);
+    } else {
+      AST_Parameter *p = new AST_Kwargs(line, start, stop);
+      params.push_back(p);
     }
-
-    this->pos++;
-    std::cout << "CCC: " << this->current().lexeme << std::endl;
-    AST_Node *type = this->expression();
-
-    // (todo) enforce type
-    // (todo) also enforce that it isn't nullptr
-
-    AST_Parameter *p = new AST_Parameter(name, line, start, stop);
-    p->type = type;
-
-    // (todo) look for initializer
-
-    params.push_back(p);
 
     if (this->peek_consume_if(Token::Type::COMMA)) {
       this->pos++;
@@ -873,8 +901,6 @@ AST_Node *Parser::statement() {
   }
 
   AST_Node *expr = this->expression();
-  std::cout << "Parsed expression node type: " << typeid(*expr).name()
-            << std::endl;
   if (this->assert_node_type<AST_Call>(expr) ||
       this->assert_node_type<AST_Assignment>(expr)) {
     // This is a normal expression statement
