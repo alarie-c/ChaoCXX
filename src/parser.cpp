@@ -283,7 +283,22 @@ std::vector<AST_Node *> Parser::call_arguments() {
     }
 
     AST_Node *expr = this->expression();
-    args.push_back(expr);
+
+    if (this->peek_consume_if(Token::Type::EQUAL)) {
+      Token &tk = this->current();
+      int line = tk.y;
+      int start = tk.x;
+      int stop = tk.x + tk.lexeme.length() - 1;
+      AST_Assignment *init =
+          new AST_Assignment(AST_Op::INITIALIZER, line, start, stop);
+
+      this->pos++;
+
+      init->assignee = expr;
+      init->value = this->expression();
+      args.push_back(init);
+    } else
+      args.push_back(expr);
 
     // if the next thing isnt a comma, then expect RPAREN to close
     if (this->peek_consume_if(Token::Type::COMMA)) {

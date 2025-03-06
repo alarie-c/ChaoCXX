@@ -63,6 +63,7 @@ std::ostream &operator<<(std::ostream &os, const AST_Op &ast_op) {
       {AST_Op::COMP_MORE_EQUAL, ">="},
       {AST_Op::COMP_IS, "IS"},
       {AST_Op::COMP_NOT, "NOT"},
+      {AST_Op::INITIALIZER, "="},
   };
   os << op_string[ast_op];
   return os;

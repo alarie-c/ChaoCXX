@@ -1,2 +1,4 @@
 add = function(*args, X: int, Y: int, **kwargs) {}
 
+
+add(a=5, b=10, "600")

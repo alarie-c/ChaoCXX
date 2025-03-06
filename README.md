@@ -20,7 +20,7 @@ A rewrite of my Chao programming language, which was originally done in Rust, th
     - [x] If/Else without curlys
 - [x] Function expressions
 - [x] Functional calls
-    - [ ] Keyword arguments
+    - [x] Keyword arguments
 - [x] Array declaration
 - [ ] Array indexing
 - [ ] Matrix declaration

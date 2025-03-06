@@ -38,6 +38,7 @@ enum AST_Op {
   COMP_MORE_EQUAL,
   COMP_IS,
   COMP_NOT,
+  INITIALIZER,
 };
 
 // Utility functions for AST_Op
