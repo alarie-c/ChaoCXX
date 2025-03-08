@@ -474,7 +474,7 @@ AST_Node *Parser::call() {
       int start = tk.x;
       int stop = tk.x + tk.lexeme.length() - 1;
 
-      AST_Call *n = new AST_Call(expr, line, start, stop);
+      AST_Call *node = new AST_Call(expr, line, start, stop);
       this->pos++;
 
       // Use expression as the callee
@@ -484,11 +484,49 @@ AST_Node *Parser::call() {
         return nullptr;
       }
 
-      n->args = args;
-      expr = n;
-    }
-    break;
+      node->args = args;
+      expr = node;
+      std::cout << "After call: " << this->current().lexeme << std::endl;
+    } else
+      break;
   }
+
+  return expr;
+}
+
+AST_Node *Parser::lookup() {
+  AST_Node *expr = this->call();
+
+  while (true) {
+    std::cout << "Enter lookup loop: " << this->current().lexeme << std::endl;
+    if (this->peek_consume_if(Token::Type::LBRAC)) {
+      Token &tk = this->current();
+      int line = tk.y;
+      int start = tk.x;
+      int stop = tk.x + tk.lexeme.length() - 1;
+      AST_Lookup *node = new AST_Lookup(expr, line, start, stop);
+
+      // Get the index
+      this->pos++;
+      AST_Node *right = this->term();
+      node->right = right;
+
+      if (!this->peek_consume_if_ignore_newlines(Token::Type::RBRAC)) {
+        Token &tk = this->current();
+        int line = tk.y;
+        int start = tk.x;
+        int stop = tk.x + tk.lexeme.length() - 1;
+        this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop,
+                                  Error::Flag::ABORT,
+                                  "Expected a ']' to close the array lookup");
+        // pretend like we consumed it anyway
+      }
+      std::cout << "after the lookip: " << this->current().lexeme << std::endl;
+      expr = node;
+    } else
+      break;
+  }
+
   return expr;
 }
 
@@ -508,7 +546,7 @@ AST_Node *Parser::unary() {
     n->operand = operand;
     return n;
   }
-  return this->call();
+  return this->lookup();
 }
 
 AST_Node *Parser::factor() {

@@ -146,6 +146,14 @@ AST_Parameter::~AST_Parameter() {
   delete this->type;
 }
 
+AST_Lookup::AST_Lookup(AST_Node *left, int line, int start, int stop)
+    : AST_Node(line, start, stop), left(left) {}
+
+AST_Lookup::~AST_Lookup() {
+  delete this->left;
+  delete this->right;
+}
+
 AST_Block::AST_Block(int line, int start, int stop)
     : AST_Node(line, start, stop) {}
 
@@ -242,6 +250,14 @@ void AST_Logical::print(int indent) const {
   std::cout << spaces << "  <Op> " << this->op << " </Op>\n";
   this->right->print(indent + 2);
   std::cout << spaces << "</Logical>" << std::endl;
+}
+
+void AST_Lookup::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Lookup>\n";
+  this->left->print(indent + 2);
+  this->right->print(indent + 2);
+  std::cout << spaces << "</Lookup>" << std::endl;
 }
 
 void AST_Unary::print(int indent) const {

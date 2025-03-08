@@ -1,4 +1,7 @@
-add = function(*args, X: int, Y: int, **kwargs) {}
+list = [5, 10, 15, 20]
 
+mut x = list[1][2]
 
-add(a=5, b=10, "600")
+hello = functioncall()[1]
+
+g = [5, 10, 15][2+50]

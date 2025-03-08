@@ -43,6 +43,7 @@ private:
 
   AST_Node *primary();
   AST_Node *function();
+  AST_Node *lookup();
   AST_Node *call();
   AST_Node *unary();
   AST_Node *factor();

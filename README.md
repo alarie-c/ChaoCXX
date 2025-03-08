@@ -22,7 +22,7 @@ A rewrite of my Chao programming language, which was originally done in Rust, th
 - [x] Functional calls
     - [x] Keyword arguments
 - [x] Array declaration
-- [ ] Array indexing
+- [x] Array indexing
 - [ ] Matrix declaration
 - [ ] Matrix indexing
 - [ ] Operator overloading

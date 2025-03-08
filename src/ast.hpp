@@ -172,6 +172,15 @@ struct AST_Grouping : public AST_Node {
   void print(int indent) const override;
 };
 
+struct AST_Lookup : public AST_Node {
+  AST_Node *left;
+  AST_Node *right;
+
+  AST_Lookup(AST_Node *left, int line, int start, int stop);
+  ~AST_Lookup();
+  void print(int indent) const override;
+};
+
 struct AST_Block : public AST_Node {
   std::vector<AST_Node *> nodes;
 
