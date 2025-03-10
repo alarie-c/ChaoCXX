@@ -247,6 +247,14 @@ struct AST_Kwargs : public AST_Parameter {
   void print(int indent) const override;
 };
 
+struct AST_Return : public AST_Node {
+  std::optional<AST_Node *> value;
+
+  AST_Return(int line, int start, int stop);
+  ~AST_Return();
+  void print(int indent) const override;
+};
+
 // struct AST_While_Loop : public AST_Node {
 //   AST_Node *condition;
 //   AST_Node *body;

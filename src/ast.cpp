@@ -208,6 +208,15 @@ AST_Args::AST_Args(int line, int start, int stop)
 AST_Kwargs::AST_Kwargs(int line, int start, int stop)
     : AST_Parameter("kwargs", line, start, stop) {}
 
+AST_Return::AST_Return(int line, int start, int stop) : AST_Node(line, start, stop) {
+  this->value = std::nullopt;
+}
+
+AST_Return::~AST_Return() {
+  if (this->value)
+    delete this->value.value();
+}
+
 // =================================================================
 // AST NODE PRINT OVERRIDES
 // =================================================================
@@ -419,6 +428,14 @@ void AST_Args::print(int indent) const {
 void AST_Kwargs::print(int indent) const {
   std::string spaces = std::string(indent, ' ');
   std::cout << spaces << "<**Kwargs/>" << std::endl;
+}
+
+void AST_Return::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Return>\n";
+  if (this->value)
+    this->value.value()->print(indent + 2);
+  std::cout << spaces << "</Return>" << std::endl;
 }
 
 // =================================================================

@@ -978,6 +978,28 @@ AST_Node *Parser::statement() {
     break;
   }
 
+  case Token::Type::RETURN: {
+      this->pos++;
+      tk = this->current();
+      int line = tk.y;
+      int start = tk.x;
+      int stop = tk.x + tk.lexeme.length() - 1;
+
+      AST_Return *return_node = new AST_Return(line, start, stop);
+      
+      if (this->peek().type == Token::Type::NEWLINE || this->peek().type ==  Token::Type::SEMICOLON || tk.type == Token::Type::NEWLINE || tk.type == Token::Type::SEMICOLON) {
+        return_node->value = std::nullopt;
+        // this->pos++;
+        return return_node;
+      }
+        
+      AST_Node *node = this->expression();
+      return_node->value = node;
+      this->skip_to_endof_statement();
+      this->pos--;
+      return return_node;
+    }
+
   case Token::Type::MUT: {
     this->pos++;
     tk = this->current();
