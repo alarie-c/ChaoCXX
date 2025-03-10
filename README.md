@@ -8,12 +8,12 @@ A rewrite of my Chao programming language, which was originally done in Rust, th
 - [x] Strings
 - [x] Operators
 - [ ] Escape sequences
-- [ ] Non-decimal numbers 
+- [x] Non-decimal numbers 
 
 ## 2. Parser
 - [x] Symbols
 - [x] Strings
-- [ ] Numbers
+- [x] Numbers
 - [x] Binary expressions
 - [x] Logical expressions
 - [x] If/Else statements
@@ -30,3 +30,6 @@ A rewrite of my Chao programming language, which was originally done in Rust, th
 - [ ] Enum declaration
 - [ ] Decorators
 - [ ] Compiler directives
+- [ ] Strongly typed bindings
+- [ ] Generics/typvars
+- [ ] Type aliasing

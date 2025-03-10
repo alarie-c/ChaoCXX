@@ -18,6 +18,11 @@ inline Error *lexer_error(Error::Type t, size_t y, size_t x0, size_t x1,
 Lexer::Lexer(const std::string &source, Reporter *reporter)
     : stream(source), cursor(0), line(1), reporter(reporter) {}
 
+bool is_hex(char c) {
+  return ('0' <= c && c <= '9') || ('A' <= c && c <= 'F') ||
+         ('a' <= c && c <= 'f');
+}
+
 void Lexer::scan() {
   while (this->cursor < this->stream.length()) {
     char ch = this->stream[this->cursor];
@@ -176,7 +181,7 @@ void Lexer::scan() {
     case '%':
       this->output.push_back(
           Token(Token::Type::MODULO, LEXEME_SV, this->line, start));
-      break; 
+      break;
 
     // Handle comments
     case '#': {
@@ -229,9 +234,71 @@ void Lexer::scan() {
               Token(Token::Type::SYMBOL, lexeme, this->line, start));
 
       } else if (isdigit(ch)) {
+        if (ch == '0') {
+          // Could be octal/hex/binary
+          if (peek() == 'x' || peek() == 'X') {
+            this->cursor++;
+
+            // Hex requires more tokenizing
+            while (true) {
+              char now = peek();
+              if (isspace(now))
+                break;
+              else if (now == '\0')
+                break;
+              else if (now == '_')
+                this->cursor++;
+              else if (is_hex(now))
+                this->cursor++;
+              else {
+                this->reporter->new_error(
+                    Error::Type::SYNTAX_ERROR, this->line, this->cursor,
+                    this->cursor, Error::Flag::ABORT,
+                    "Invalid character in hexadecimal number literal");
+                break;
+              }
+            }
+            this->output.push_back(
+                Token(Token::Type::NUMBER, LEXEME_SV, this->line, start));
+            break;
+          }
+
+          if (peek() == 'o' || peek() == 'O' || peek() == 'b' ||
+              peek() == 'B') {
+            char base = peek();
+            this->cursor++;
+
+            while (true) {
+              char now = peek();
+              if (isspace(now))
+                break;
+              else if (now == '\0')
+                break;
+              else if (now == '_') {
+                this->cursor++;
+                continue;
+              } else if ((base == 'b' ||
+                          base == 'B' && (now == '0' || now == '1')) ||
+                         (base == 'o' ||
+                          base == 'O' && (now >= '0' && now <= '7'))) {
+                this->cursor++;
+              } else {
+                this->reporter->new_error(
+                    Error::Type::SYNTAX_ERROR, this->line, this->cursor,
+                    this->cursor, Error::Flag::ABORT,
+                    "Invalid character in binary/octal number literal");
+                break;
+              }
+            }
+            this->output.push_back(
+                Token(Token::Type::NUMBER, LEXEME_SV, this->line, start));
+            break;
+          }
+        }
+
         // Tokenize numbers here
         while (isdigit(peek()) || peek() == '_' || peek() == '.')
-          next(); /* unused return */
+          this->cursor++;
         this->output.push_back(
             Token(Token::Type::NUMBER, LEXEME_SV, this->line, start));
       } else {

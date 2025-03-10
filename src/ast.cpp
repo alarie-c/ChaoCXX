@@ -87,7 +87,11 @@ AST_Assignment::~AST_Assignment() {
 AST_String::AST_String(std::string value, int line, int start, int stop)
     : AST_Node(line, start, stop), value(value) {}
 
-AST_Integer::AST_Integer(long long int value, int line, int start, int stop)
+AST_Integer::AST_Integer(long long int value, int base, int line, int start,
+                         int stop)
+    : AST_Node(line, start, stop), value(value), base(base) {}
+
+AST_Float::AST_Float(double value, int line, int start, int stop)
     : AST_Node(line, start, stop), value(value) {}
 
 AST_Symbol::AST_Symbol(std::string name, int line, int start, int stop)
@@ -225,8 +229,22 @@ void AST_String::print(int indent) const {
 
 void AST_Integer::print(int indent) const {
   std::string spaces = std::string(indent, ' ');
-  std::cout << spaces << "<Integer> " << this->value << " </Integer>"
-            << std::endl;
+  if (this->base == 10)
+    std::cout << spaces << "<Integer> " << this->value << " </Integer>"
+              << std::endl;
+  else if (this->base == 8)
+    std::cout << spaces << "<Octal> " << this->value << " </Octal>"
+              << std::endl;
+  else if (this->base == 2)
+    std::cout << spaces << "<Binary> " << this->value << " </Binary>"
+              << std::endl;
+  else if (this->base == 16)
+    std::cout << spaces << "<Hex> " << this->value << " </Hex>" << std::endl;
+}
+
+void AST_Float::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Float> " << this->value << " </Float>" << std::endl;
 }
 
 void AST_Symbol::print(int indent) const {

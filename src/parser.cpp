@@ -2,16 +2,75 @@
 #include "ast.hpp"
 #include "errors.hpp"
 #include "token.hpp"
+#include <algorithm>
 #include <array>
 #include <iostream>
 #include <optional>
+#include <string_view>
 #include <vector>
+
+// ---------------------------------------------------------------------
+// HELPER FUNCTIONS
+// ---------------------------------------------------------------------
 
 std::optional<AST_Op> operator_from_token(Token &tk) {
   if (operators.count(tk.type) != 0) {
     return operators[tk.type];
   }
   return std::nullopt;
+}
+
+AST_Node *parse_number(std::string str, int line, int start, int stop) {
+  // Remove underscores
+  str.erase(std::remove(str.begin(), str.end(), '_'), str.end());
+  std::cout << "AFTER ERASE: " << str << std::endl;
+
+  if (str[0] == '0') {
+    // // Directly handle the '0' case
+    // if (str.length() == 1) {
+    //   std::cout << "Zero detected!" << std::endl;
+    //   AST_Node *n = new AST_Integer(0, 10, line, start, stop);
+    //   return n;
+    // }
+
+    if (str.length() > 1) {
+      // Binary representation
+      if (str[1] == 'B' || str[1] == 'b') {
+        str.erase(0, 2);
+        std::cout << "PARSING N: " << str << std::endl;
+        long long int value = strtoll(str.c_str(), NULL, 2);
+        AST_Node *n = new AST_Integer(value, 2, line, start, stop);
+        return n;
+
+        // Hexadecimal
+      } else if (str[1] == 'X' || str[1] == 'x') {
+        str.erase(0, 2);
+        std::cout << "PARSING N: " << str << std::endl;
+        long long int value = strtoll(str.c_str(), NULL, 16);
+        AST_Node *n = new AST_Integer(value, 16, line, start, stop);
+        return n;
+
+        // Octal
+      } else if (str[1] == 'O' || str[1] == 'o') {
+        str.erase(0, 2);
+        std::cout << "PARSING N: " << str << std::endl;
+        long long int value = strtoll(str.c_str(), NULL, 8);
+        AST_Node *n = new AST_Integer(value, 8, line, start, stop);
+        return n;
+      }
+    }
+  }
+
+  if (str.find('.') != std::string::npos) {
+    double value = strtod(str.c_str(), NULL);
+    AST_Node *n = new AST_Float(value, line, start, stop);
+    return n;
+  }
+
+  std::cout << "normal integer" << std::endl;
+  long long int value = strtoll(str.c_str(), NULL, 10);
+  AST_Node *n = new AST_Integer(value, 10, line, start, stop);
+  return n;
 }
 
 void Parser::parse() {
@@ -38,6 +97,7 @@ void Parser::parse() {
 // ---------------------------------------------------------------------
 // HELPER METHODS
 // ---------------------------------------------------------------------
+
 Parser::Parser(std::vector<Token> stream, Reporter *reporter)
     : stream(stream), pos(0), tree(Parse_Tree()), reporter(reporter) {}
 
@@ -399,11 +459,8 @@ AST_Node *Parser::primary() {
     AST_Node *n = new AST_String(std::string(tk.lexeme), line, start, stop);
     return n;
   }
-  case Token::Type::NUMBER: {
-    long long int value = strtoll(std::string(tk.lexeme).c_str(), NULL, 10);
-    AST_Node *n = new AST_Integer(value, line, start, stop);
-    return n;
-  }
+  case Token::Type::NUMBER:
+    return parse_number(std::string{tk.lexeme}, line, start, stop);
   case Token::Type::LBRAC:
     return this->array_literal(tk);
   default: {

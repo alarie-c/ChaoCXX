@@ -80,7 +80,14 @@ struct AST_String : public AST_Node {
 // `NUMBER LITERAL` where `lexeme` contains no dot chars
 struct AST_Integer : public AST_Node {
   long long int value;
-  AST_Integer(long long int value, int line, int start, int stop);
+  int base;
+  AST_Integer(long long int value, int base, int line, int start, int stop);
+  void print(int indent) const override;
+};
+
+struct AST_Float : public AST_Node {
+  double value;
+  AST_Float(double value, int line, int start, int stop);
   void print(int indent) const override;
 };
 

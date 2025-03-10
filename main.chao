@@ -1,7 +1,9 @@
-list = [5, 10, 15, 20]
+integer = 0
+float   = 0.5
+binary  = 0b1010
+octal   = 0o52
+hex     = 0xA5
 
-mut x = list[1][2]
-
-hello = functioncall()[1]
-
-g = [5, 10, 15][2+50]
+binary_  = 0B_1010
+octal_   = 0O_52
+hex_     = 0X_A5
