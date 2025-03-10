@@ -1,0 +1,36 @@
+# Typecasts in Chao fall into two categories:
+#   1. Lossy
+#   2. Lossless
+
+# Lossy typecasts involve the loss of some information during the cast
+
+add = function(a: int, b: uint): uint {
+  a_as_uint, err = uint(a)
+  if err not nil { 
+    err.print()
+    return 0
+  }
+
+  return a_as_uint + b
+}
+
+# Check must be done because `uint.__init__(v: int)` has a return type `uint?`
+# since negative integers cannot be represented by uint
+
+# Lossless typecasts involve a cast where no information is lost during the cast
+# Lossless casts are performed automatically at runtime
+
+add = function(a: int, b: uint): int {
+  b_as_int = int(b)
+  return b_as_int + a
+}
+
+# No check involved since uint -> int is a lossless cast
+
+add = function(a: float, b: float): float {
+  return a + b
+}
+
+add(3, 5.5)
+
+# Again, no check or explicit cast is needed since int(3) -> float(3) is lossless

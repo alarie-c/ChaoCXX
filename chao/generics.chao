@@ -1,0 +1,69 @@
+# Bounded type variables
+
+typevar T = int | uint | float
+add = function(a: T, b: T): T {
+  return a + b
+}
+
+# Generic type aliases and multiple generics
+
+typevar S = int | uint | float
+type Vector = List<S>
+
+typevar
+  V = Vector<any> | List<any> | Array<any>,
+  T = int | uint | float
+scale = function(vec: V, factor: T): V {
+  return vec.map(function(x) { return x * factor })
+}
+
+# Generics for use in other generics
+
+typevar(T = uint | int) V = Vector<T>
+type NVector = V
+
+# Multiple generics with functions
+
+typevar
+  X = int | float,
+  Y = uint | float,
+some_function = function(a: X, b: Y): X {} 
+
+# Generics vs. type unions
+
+# Type-unions:
+# In this scenario, type checking is done dynamically at runtime for ever call of "add" and 
+# more importantly, each case where `add` returns is handled and checked separately
+
+add = function(a: int | uint | float, b: int | uint | float): int | uint | float {
+  return a + b
+} 
+
+# Generics:
+# In this scenario, the type of each parameter must be known at compile time, and it enforces that
+# `a` and `b` must be the same case of `int | uint | float`.
+
+# Generics are also monomorphized, so more optimizations are possible
+
+typevar T = int | uint | float
+add = function(a: T, b: T): T {
+  return a + b
+}
+
+x = add(0.5, 1.0)
+y = add(1, 2)
+
+# All of the above turns into:
+
+add__float = function(a: float, b: float): float {
+  return a + b
+}
+
+add__int = function(a: int, b: int): int {
+  return a + b
+}
+
+x = add__float(0.5, 1.0)
+y = add__int(1, 2)
+
+# ... through the process of monomorphization
