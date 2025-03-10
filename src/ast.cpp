@@ -217,6 +217,8 @@ AST_Return::~AST_Return() {
     delete this->value.value();
 }
 
+AST_Enum_Decl::AST_Enum_Decl(std::string symbol, int line, int start, int stop) : AST_Node(line, start, stop), symbol(symbol) {}
+
 // =================================================================
 // AST NODE PRINT OVERRIDES
 // =================================================================
@@ -436,6 +438,15 @@ void AST_Return::print(int indent) const {
   if (this->value)
     this->value.value()->print(indent + 2);
   std::cout << spaces << "</Return>" << std::endl;
+}
+
+void AST_Enum_Decl::print(int indent) const {
+  std::string spaces = std::string(indent, ' ');
+  std::cout << spaces << "<Enum>\n";
+
+  for (std::string s : this->variants) 
+    std::cout << spaces << "  <Variant> " << s << "</Variant>";
+  std::cout << spaces << "</Enum>" << std::endl;
 }
 
 // =================================================================

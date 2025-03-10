@@ -255,6 +255,14 @@ struct AST_Return : public AST_Node {
   void print(int indent) const override;
 };
 
+struct AST_Enum_Decl : public AST_Node {
+  std::string symbol;
+  std::vector<std::string> variants;
+
+  AST_Enum_Decl(std::string symbol, int line, int start, int stop);
+  void print(int indent) const override;
+};
+
 // struct AST_While_Loop : public AST_Node {
 //   AST_Node *condition;
 //   AST_Node *body;

@@ -1,9 +1,9 @@
-add = function(a: int, b: int) : int {
-  return a + b
-}
-
-main = function() {
-  x = add(5, 10)
-
-  return
+enum Day {
+  Monday,
+  Tuesday,
+  Wednesday,
+  Thursday,
+  Friday,
+  Saturday,
+  Sunday
 }

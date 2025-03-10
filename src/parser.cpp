@@ -951,10 +951,68 @@ AST_Node *Parser::initialized_binding(Token &token, bool mut) {
   return node;
 }
 
+AST_Node *Parser::enum_declaration(Token &token) {
+  this->pos++; // consume ENUM
+  int line = token.y;
+  int start = token.x;
+  int stop = token.x + token.lexeme.length() - 1;
+
+  if (this->current().type != Token::Type::SYMBOL) {
+    this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "Expected a symbol after 'enum'");
+    return nullptr;
+  }
+
+  // Get the symbol for the enum
+  std::string symbol = std::string(this->current().lexeme);
+  AST_Enum_Decl *node = new AST_Enum_Decl(symbol, line, start, stop);
+
+  if (!this->peek_consume_if_ignore_newlines(Token::Type::LCURL)) {
+    Token &tk = this->current();
+    int line = tk.y;
+    int start = tk.x;
+    int stop = tk.x + tk.lexeme.length() - 1;
+    this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "Expected '{' after enum declaration.");
+    return nullptr;
+  } else
+    this->pos++;
+
+  // Take variants
+  while (true) {
+    if (this->current().type != Token::Type::SYMBOL) {
+      Token &tk = this->current();
+      int line = tk.y;
+      int start = tk.x;
+      int stop = tk.x + tk.lexeme.length() - 1;
+      this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "Only symbols are allowed in enum declarations");
+    } else {
+      std::string variant = std::string(this->current().lexeme);
+      node->variants.push_back(variant);
+    }
+
+    if (this->peek_consume_if(std::vector{Token::Type::NEWLINE, Token::Type::COMMA})) {
+      this->pos++;
+      continue;
+    } else
+      break;
+  }
+
+  if (!this->peek_consume_if_ignore_newlines(Token::Type::RCURL)) {
+    Token &tk = this->current();
+    int line = tk.y;
+    int start = tk.x;
+    int stop = tk.x + tk.lexeme.length() - 1;
+    this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "Expected '}' to close declaration.");
+  } else
+    this->pos++;
+
+  return node;
+}
+
 AST_Node *Parser::end_statement(AST_Node *stmt) {
   this->skip_to_endof_statement();
   return stmt;
 }
+
 
 AST_Node *Parser::statement() {
   std::cout << "Entering statement: " << this->current().lexeme << std::endl;
@@ -1030,6 +1088,9 @@ AST_Node *Parser::statement() {
     this->pos++;
     return nullptr;
   }
+
+  case Token::Type::ENUM: 
+    return this->end_statement(this->enum_declaration(tk));
 
   case Token::Type::IF:
     return this->end_statement(this->if_stmt(tk));
