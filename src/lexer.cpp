@@ -209,8 +209,15 @@ void Lexer::scan() {
 
     case '"': {
       this->cursor++;
-      while (peek() != '"')
+      while (peek() != '"' && peek() != '\0')
         this->cursor++;
+      
+      if (peek() == '\0') {
+        this->reporter->new_error(Error::Type::NONTERMINATING_STRLITERAL, this->line, start, this->cursor, Error::Flag::ABORT, "String literal has no closing '\"'");
+        this->output.push_back(
+          Token(Token::Type::STRING, LEXEME_SV, this->line, start));
+        break;
+      }
       this->cursor++;
       this->output.push_back(
           Token(Token::Type::STRING, LEXEME_SV, this->line, start));
@@ -252,8 +259,8 @@ void Lexer::scan() {
                 this->cursor++;
               else {
                 this->reporter->new_error(
-                    Error::Type::SYNTAX_ERROR, this->line, this->cursor,
-                    this->cursor, Error::Flag::ABORT,
+                    Error::Type::SYNTAX_ERROR, this->line, this->cursor+1,
+                    this->cursor+1, Error::Flag::ABORT,
                     "Invalid character in hexadecimal number literal");
                 break;
               }
@@ -284,8 +291,8 @@ void Lexer::scan() {
                 this->cursor++;
               } else {
                 this->reporter->new_error(
-                    Error::Type::SYNTAX_ERROR, this->line, this->cursor,
-                    this->cursor, Error::Flag::ABORT,
+                    Error::Type::SYNTAX_ERROR, this->line, this->cursor+1,
+                    this->cursor+1, Error::Flag::ABORT,
                     "Invalid character in binary/octal number literal");
                 break;
               }

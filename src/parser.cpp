@@ -538,7 +538,11 @@ AST_Node *Parser::call() {
       std::vector<AST_Node *> args = this->call_arguments();
       if (this->current().type != Token::Type::RPAREN) {
         std::cerr << "ERROR parsing function args missing RPAREN" << std::endl;
-        return nullptr;
+        //return nullptr;
+
+        this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "This function call is missing the closing ')'");
+
+        // try returning whatever this ended up being, although it may shoot us in the foot
       }
 
       node->args = args;
@@ -555,7 +559,6 @@ AST_Node *Parser::lookup() {
   AST_Node *expr = this->call();
 
   while (true) {
-    std::cout << "Enter lookup loop: " << this->current().lexeme << std::endl;
     if (this->peek_consume_if(Token::Type::LBRAC)) {
       Token &tk = this->current();
       int line = tk.y;
@@ -1011,10 +1014,14 @@ AST_Node *Parser::statement() {
   }
 
   AST_Node *expr = this->expression();
-  if (this->assert_node_type<AST_Call>(expr) ||
+  if (expr != nullptr && this->assert_node_type<AST_Call>(expr) ||
       this->assert_node_type<AST_Assignment>(expr)) {
     // This is a normal expression statement
     return expr;
+  }
+  if (expr == nullptr) {
+    std::cerr << "Nullptr expression bro..." << std::endl;
+    return nullptr;
   }
   this->reporter->new_error(Error::Type::SYNTAX_ERROR, expr->line, expr->start,
                             expr->stop, Error::Flag::ABORT,

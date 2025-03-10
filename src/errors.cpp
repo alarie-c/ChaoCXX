@@ -73,16 +73,12 @@ void Reporter::print_errors() const {
     std::string ws = std::string(ws_n, ' ');
     std::string underline = ws + std::string(underline_len, '^');
 
-    std::cout << "\n[" << n_errors << "] " << this->path << " " << e
-              << " on line " << e->line << "\n~\n~ " << buffer << "\n~ "
-              << underline << "\n"
-              << e->message << "\n"
-              << std::endl;
+    std::cout << TERM_ESC << TERMCOL_ERROR << "\nerror " << TERM_RESET << this->path << " " << e->type << " on line " << e->line << "\n~\n~ " << buffer << "\n~ " << TERM_ESC << TERMCOL_HIGHLIGHT << underline << TERM_RESET << "\n" << TERM_ESC << TERMCOL_MESSAGE << e->message << TERM_RESET << "\n" << std::endl;
     n_errors++;
   }
 }
 
-std::ostream &operator<<(std::ostream &os, const Error &e) {
+std::ostream &operator<<(std::ostream &os, const Error::Type &t) {
   static std::map<Error::Type, std::string> types = {
       {Error::Type::ILLEGAL_CHAR, "Illegal Character"},
       {Error::Type::EXPECTED_EXPRESSION, "Expected Expression"},
@@ -94,6 +90,6 @@ std::ostream &operator<<(std::ostream &os, const Error &e) {
       {Error::Type::TOO_MANY_MEMBERS, "Too Many Members"},
       {Error::Type::TOO_MANY_VARIANTS, "Too Many Variants"},
   };
-  os << types[e.type];
+  os << TERM_ESC << TERMCOL_MESSAGE << types[t] << TERM_RESET;
   return os;
 }

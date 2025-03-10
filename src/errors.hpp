@@ -6,6 +6,15 @@
 #include <map>
 #include <string>
 #include <vector>
+ 
+#define TERM_ESC "\033["
+#define TERMCOL_ERROR "91m"
+#define TERMCOL_MESSAGE "92m"
+#define TERMCOL_HIGHLIGHT "93m"
+#define TERMCOL_BG_BLACK "40"
+#define TERMCOL_FG_RED "91"
+#define TERMCOL_FG_YELLOW "93"
+#define TERM_RESET "\033[m"
 
 struct Error {
   enum Type {
@@ -34,7 +43,7 @@ struct Error {
         std::string message);
 };
 
-std::ostream &operator<<(std::ostream &os, const Error &e);
+std::ostream &operator<<(std::ostream &os, const Error::Type &t);
 
 class Reporter {
   const std::string file_name, path;
