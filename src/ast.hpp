@@ -46,11 +46,37 @@ extern std::map<Token::Type, AST_Op> operators;
 std::ostream &operator<<(std::ostream &os, const AST_Op &ast_op);
 
 struct AST_Node {
+  enum Type {
+    Assignment,
+    String,
+    Integer,
+    Float,
+    Symbol,
+    Binary,
+    Logical,
+    Unary,
+    Call,
+    Parameter,
+    Function,
+    Grouping,
+    Lookup,
+    Block,
+    Array_Literal,
+    Matrix_Literal,
+    Binding,
+    If_Stmt,
+    Args,
+    Kwargs,
+    Return,
+    Enum_Decl,
+  };
+
   int line;
   int start;
   int stop;
+  AST_Node::Type type;
 
-  AST_Node(int line, int start, int stop);
+  AST_Node(AST_Node::Type type, int line, int start, int stop);
   virtual ~AST_Node() = default;
   virtual void print(int indent) const = 0;
 };

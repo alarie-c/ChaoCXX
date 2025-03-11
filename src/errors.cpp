@@ -73,7 +73,12 @@ void Reporter::print_errors() const {
     std::string ws = std::string(ws_n, ' ');
     std::string underline = ws + std::string(underline_len, '^');
 
-    std::cout << TERM_ESC << TERMCOL_ERROR << "\nerror " << TERM_RESET << this->path << " " << e->type << " on line " << e->line << "\n~\n~ " << buffer << "\n~ " << TERM_ESC << TERMCOL_HIGHLIGHT << underline << TERM_RESET << "\n" << TERM_ESC << TERMCOL_MESSAGE << e->message << TERM_RESET << "\n" << std::endl;
+    std::cout << TERM_ESC << TERMCOL_ERROR << "\nerror " << TERM_RESET
+              << this->path << " " << e->type << " on line " << e->line
+              << "\n~\n~ " << buffer << "\n~ " << TERM_ESC << TERMCOL_HIGHLIGHT
+              << underline << TERM_RESET << "\n"
+              << TERM_ESC << TERMCOL_MESSAGE << e->message << TERM_RESET << "\n"
+              << std::endl;
     n_errors++;
   }
 }
@@ -90,6 +95,6 @@ std::ostream &operator<<(std::ostream &os, const Error::Type &t) {
       {Error::Type::TOO_MANY_MEMBERS, "Too Many Members"},
       {Error::Type::TOO_MANY_VARIANTS, "Too Many Variants"},
   };
-  os << TERM_ESC << TERMCOL_MESSAGE << types[t] << TERM_RESET;
+  os << TERM_ESC << TERMCOL_HIGHLIGHT << types[t] << TERM_RESET;
   return os;
 }

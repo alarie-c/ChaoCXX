@@ -73,11 +73,11 @@ std::ostream &operator<<(std::ostream &os, const AST_Op &ast_op) {
 // AST NODE CONSTRUCTORS
 // =================================================================
 
-AST_Node::AST_Node(int line, int start, int stop)
-    : line(line), start(start), stop(stop) {}
+AST_Node::AST_Node(AST_Node::Type type, int line, int start, int stop)
+    : type(type), line(line), start(start), stop(stop) {}
 
 AST_Assignment::AST_Assignment(AST_Op op, int line, int start, int stop)
-    : AST_Node(line, start, stop), op(op) {}
+    : AST_Node(AST_Node::Type::Assignment, line, start, stop), op(op) {}
 
 AST_Assignment::~AST_Assignment() {
   delete this->value;
@@ -85,20 +85,21 @@ AST_Assignment::~AST_Assignment() {
 }
 
 AST_String::AST_String(std::string value, int line, int start, int stop)
-    : AST_Node(line, start, stop), value(value) {}
+    : AST_Node(AST_Node::Type::String, line, start, stop), value(value) {}
 
 AST_Integer::AST_Integer(long long int value, int base, int line, int start,
                          int stop)
-    : AST_Node(line, start, stop), value(value), base(base) {}
+    : AST_Node(AST_Node::Type::Integer, line, start, stop), value(value),
+      base(base) {}
 
 AST_Float::AST_Float(double value, int line, int start, int stop)
-    : AST_Node(line, start, stop), value(value) {}
+    : AST_Node(AST_Node::Type::Float, line, start, stop), value(value) {}
 
 AST_Symbol::AST_Symbol(std::string name, int line, int start, int stop)
-    : AST_Node(line, start, stop), name(name) {}
+    : AST_Node(AST_Node::Type::Symbol, line, start, stop), name(name) {}
 
 AST_Binary::AST_Binary(AST_Op op, int line, int start, int stop)
-    : AST_Node(line, start, stop), op(op) {}
+    : AST_Node(AST_Node::Type::Binary, line, start, stop), op(op) {}
 
 AST_Binary::~AST_Binary() {
   delete this->left;
@@ -106,7 +107,7 @@ AST_Binary::~AST_Binary() {
 }
 
 AST_Logical::AST_Logical(AST_Op op, int line, int start, int stop)
-    : AST_Node(line, start, stop), op(op) {}
+    : AST_Node(AST_Node::Type::Logical, line, start, stop), op(op) {}
 
 AST_Logical::~AST_Logical() {
   delete this->left;
@@ -114,12 +115,12 @@ AST_Logical::~AST_Logical() {
 }
 
 AST_Unary::AST_Unary(AST_Op op, int line, int start, int stop)
-    : AST_Node(line, start, stop), op(op) {}
+    : AST_Node(AST_Node::Type::Unary, line, start, stop), op(op) {}
 
 AST_Unary::~AST_Unary() { delete this->operand; }
 
 AST_Call::AST_Call(AST_Node *callee, int line, int start, int stop)
-    : AST_Node(line, start, stop), callee(callee) {}
+    : AST_Node(AST_Node::Type::Call, line, start, stop), callee(callee) {}
 
 AST_Call::~AST_Call() {
   delete this->callee;
@@ -128,7 +129,7 @@ AST_Call::~AST_Call() {
 }
 
 AST_Function::AST_Function(int line, int start, int stop)
-    : AST_Node(line, start, stop) {}
+    : AST_Node(AST_Node::Type::Function, line, start, stop) {}
 
 AST_Function::~AST_Function() {
   if (this->return_type)
@@ -142,7 +143,7 @@ AST_Function::~AST_Function() {
 }
 
 AST_Parameter::AST_Parameter(std::string name, int line, int start, int stop)
-    : AST_Node(line, start, stop), name(name) {}
+    : AST_Node(AST_Node::Type::Parameter, line, start, stop), name(name) {}
 
 AST_Parameter::~AST_Parameter() {
   if (this->initializer)
@@ -151,7 +152,7 @@ AST_Parameter::~AST_Parameter() {
 }
 
 AST_Lookup::AST_Lookup(AST_Node *left, int line, int start, int stop)
-    : AST_Node(line, start, stop), left(left) {}
+    : AST_Node(AST_Node::Type::Lookup, line, start, stop), left(left) {}
 
 AST_Lookup::~AST_Lookup() {
   delete this->left;
@@ -159,7 +160,7 @@ AST_Lookup::~AST_Lookup() {
 }
 
 AST_Block::AST_Block(int line, int start, int stop)
-    : AST_Node(line, start, stop) {}
+    : AST_Node(AST_Node::Type::Block, line, start, stop) {}
 
 AST_Block::~AST_Block() {
   for (AST_Node *node : this->nodes)
@@ -170,7 +171,7 @@ AST_Block::~AST_Block() {
 void AST_Block::append(AST_Node *node) { this->nodes.push_back(node); }
 
 AST_Array_Literal::AST_Array_Literal(int line, int start, int stop)
-    : AST_Node(line, start, stop) {}
+    : AST_Node(AST_Node::Type::Array_Literal, line, start, stop) {}
 
 AST_Array_Literal::~AST_Array_Literal() {
   for (AST_Node *item : this->elems)
@@ -180,7 +181,8 @@ AST_Array_Literal::~AST_Array_Literal() {
 
 AST_Binding::AST_Binding(bool mut, std::string symbol, int line, int start,
                          int stop)
-    : AST_Node(line, start, stop), mut(mut), symbol(symbol) {}
+    : AST_Node(AST_Node::Type::Binding, line, start, stop), mut(mut),
+      symbol(symbol) {}
 
 AST_Binding::~AST_Binding() {
   if (this->initializer)
@@ -188,12 +190,12 @@ AST_Binding::~AST_Binding() {
 }
 
 AST_Grouping::AST_Grouping(AST_Node *inner, int line, int start, int stop)
-    : AST_Node(line, start, stop), inner(inner) {}
+    : AST_Node(AST_Node::Type::Grouping, line, start, stop), inner(inner) {}
 
 AST_Grouping::~AST_Grouping() { delete this->inner; }
 
 AST_If_Stmt::AST_If_Stmt(int line, int start, int stop)
-    : AST_Node(line, start, stop) {}
+    : AST_Node(AST_Node::Type::If_Stmt, line, start, stop) {}
 
 AST_If_Stmt::~AST_If_Stmt() {
   delete this->condition;
@@ -208,7 +210,8 @@ AST_Args::AST_Args(int line, int start, int stop)
 AST_Kwargs::AST_Kwargs(int line, int start, int stop)
     : AST_Parameter("kwargs", line, start, stop) {}
 
-AST_Return::AST_Return(int line, int start, int stop) : AST_Node(line, start, stop) {
+AST_Return::AST_Return(int line, int start, int stop)
+    : AST_Node(AST_Node::Type::Return, line, start, stop) {
   this->value = std::nullopt;
 }
 
@@ -217,7 +220,8 @@ AST_Return::~AST_Return() {
     delete this->value.value();
 }
 
-AST_Enum_Decl::AST_Enum_Decl(std::string symbol, int line, int start, int stop) : AST_Node(line, start, stop), symbol(symbol) {}
+AST_Enum_Decl::AST_Enum_Decl(std::string symbol, int line, int start, int stop)
+    : AST_Node(AST_Node::Type::Enum_Decl, line, start, stop), symbol(symbol) {}
 
 // =================================================================
 // AST NODE PRINT OVERRIDES
@@ -444,7 +448,7 @@ void AST_Enum_Decl::print(int indent) const {
   std::string spaces = std::string(indent, ' ');
   std::cout << spaces << "<Enum>\n";
 
-  for (std::string s : this->variants) 
+  for (std::string s : this->variants)
     std::cout << spaces << "  <Variant> " << s << "</Variant>";
   std::cout << spaces << "</Enum>" << std::endl;
 }
