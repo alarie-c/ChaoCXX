@@ -538,11 +538,14 @@ AST_Node *Parser::call() {
       std::vector<AST_Node *> args = this->call_arguments();
       if (this->current().type != Token::Type::RPAREN) {
         std::cerr << "ERROR parsing function args missing RPAREN" << std::endl;
-        //return nullptr;
+        // return nullptr;
 
-        this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "This function call is missing the closing ')'");
+        this->reporter->new_error(
+            Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT,
+            "This function call is missing the closing ')'");
 
-        // try returning whatever this ended up being, although it may shoot us in the foot
+        // try returning whatever this ended up being, although it may shoot us
+        // in the foot
       }
 
       node->args = args;
@@ -958,7 +961,9 @@ AST_Node *Parser::enum_declaration(Token &token) {
   int stop = token.x + token.lexeme.length() - 1;
 
   if (this->current().type != Token::Type::SYMBOL) {
-    this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "Expected a symbol after 'enum'");
+    this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop,
+                              Error::Flag::ABORT,
+                              "Expected a symbol after 'enum'");
     return nullptr;
   }
 
@@ -971,7 +976,9 @@ AST_Node *Parser::enum_declaration(Token &token) {
     int line = tk.y;
     int start = tk.x;
     int stop = tk.x + tk.lexeme.length() - 1;
-    this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "Expected '{' after enum declaration.");
+    this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop,
+                              Error::Flag::ABORT,
+                              "Expected '{' after enum declaration.");
     return nullptr;
   } else
     this->pos++;
@@ -983,13 +990,16 @@ AST_Node *Parser::enum_declaration(Token &token) {
       int line = tk.y;
       int start = tk.x;
       int stop = tk.x + tk.lexeme.length() - 1;
-      this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "Only symbols are allowed in enum declarations");
+      this->reporter->new_error(
+          Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT,
+          "Only symbols are allowed in enum declarations");
     } else {
       std::string variant = std::string(this->current().lexeme);
       node->variants.push_back(variant);
     }
 
-    if (this->peek_consume_if(std::vector{Token::Type::NEWLINE, Token::Type::COMMA})) {
+    if (this->peek_consume_if(
+            std::vector{Token::Type::NEWLINE, Token::Type::COMMA})) {
       this->pos++;
       continue;
     } else
@@ -1001,7 +1011,9 @@ AST_Node *Parser::enum_declaration(Token &token) {
     int line = tk.y;
     int start = tk.x;
     int stop = tk.x + tk.lexeme.length() - 1;
-    this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop, Error::Flag::ABORT, "Expected '}' to close declaration.");
+    this->reporter->new_error(Error::Type::SYNTAX_ERROR, line, start, stop,
+                              Error::Flag::ABORT,
+                              "Expected '}' to close declaration.");
   } else
     this->pos++;
 
@@ -1012,7 +1024,6 @@ AST_Node *Parser::end_statement(AST_Node *stmt) {
   this->skip_to_endof_statement();
   return stmt;
 }
-
 
 AST_Node *Parser::statement() {
   std::cout << "Entering statement: " << this->current().lexeme << std::endl;
@@ -1037,26 +1048,28 @@ AST_Node *Parser::statement() {
   }
 
   case Token::Type::RETURN: {
-      this->pos++;
-      tk = this->current();
-      int line = tk.y;
-      int start = tk.x;
-      int stop = tk.x + tk.lexeme.length() - 1;
+    this->pos++;
+    tk = this->current();
+    int line = tk.y;
+    int start = tk.x;
+    int stop = tk.x + tk.lexeme.length() - 1;
 
-      AST_Return *return_node = new AST_Return(line, start, stop);
-      
-      if (this->peek().type == Token::Type::NEWLINE || this->peek().type ==  Token::Type::SEMICOLON || tk.type == Token::Type::NEWLINE || tk.type == Token::Type::SEMICOLON) {
-        return_node->value = std::nullopt;
-        // this->pos++;
-        return return_node;
-      }
-        
-      AST_Node *node = this->expression();
-      return_node->value = node;
-      this->skip_to_endof_statement();
-      this->pos--;
+    AST_Return *return_node = new AST_Return(line, start, stop);
+
+    if (this->peek().type == Token::Type::NEWLINE ||
+        this->peek().type == Token::Type::SEMICOLON ||
+        tk.type == Token::Type::NEWLINE || tk.type == Token::Type::SEMICOLON) {
+      return_node->value = std::nullopt;
+      // this->pos++;
       return return_node;
     }
+
+    AST_Node *node = this->expression();
+    return_node->value = node;
+    this->skip_to_endof_statement();
+    this->pos--;
+    return return_node;
+  }
 
   case Token::Type::MUT: {
     this->pos++;
@@ -1089,7 +1102,7 @@ AST_Node *Parser::statement() {
     return nullptr;
   }
 
-  case Token::Type::ENUM: 
+  case Token::Type::ENUM:
     return this->end_statement(this->enum_declaration(tk));
 
   case Token::Type::IF:

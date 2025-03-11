@@ -305,6 +305,8 @@ public:
   void allocate(AST_Node *node);
   void print();
 
+  std::vector<AST_Node *> &unpack();
+
   Parse_Tree();
   ~Parse_Tree();
 };

@@ -470,3 +470,5 @@ void Parse_Tree::print() {
   for (AST_Node *node : this->nodes)
     node->print(0);
 }
+
+std::vector<AST_Node *> &Parse_Tree::unpack() { return this->nodes; }

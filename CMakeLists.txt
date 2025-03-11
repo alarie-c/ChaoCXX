@@ -16,6 +16,7 @@ add_executable(chaocpp
     src/parser.cpp
     src/errors.cpp
     src/ast.cpp
+    src/cbc.cpp
 )
 
 target_include_directories(chaocpp PRIVATE src)

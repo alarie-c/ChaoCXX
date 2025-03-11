@@ -5,11 +5,12 @@
 #include <streambuf>
 #include <string>
 
+#include "ast.hpp"
+#include "cbc.hpp"
 #include "errors.hpp"
 #include "lexer.hpp"
-#include "token.hpp"
 #include "parser.hpp"
-#include "ast.hpp"
+#include "token.hpp"
 
 const char *FILE_PATH = "../main.chao";
 
@@ -65,12 +66,24 @@ int main() {
 
   // reporter->print_errors();
 
-  //Parse_Tree parse_tree = make_parse_tree(tokens, reporter);
+  // Parse_Tree parse_tree = make_parse_tree(tokens, reporter);
   Parser parser = Parser(tokens, reporter);
+
   parser.parse();
   parser.tree.print();
 
   reporter->print_errors();
+
+  // Temp garbage btw
+  CBC_Compiler compiler = CBC_Compiler(parser.tree.unpack());
+
+  int i = compiler.compile();
+  if (i != 0) {
+    std::cerr << "Error compiling program" << std::endl;
+    return -1;
+  }
+
+  compiler.print_program();
 
   return 0;
 }
